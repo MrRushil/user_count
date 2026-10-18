@@ -422,6 +422,8 @@ footer .wrap{grid-template-columns:1.4fr 1fr;align-items:start;gap:40px}
 @media(max-width:700px){footer .wrap{grid-template-columns:1fr}}
 
 /* ===== Performance layer: keep scrolling at the display's full frame rate ===== */
+#sbk{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:rgba(3,6,6,.8)!important}
+#scard{filter:none!important;will-change:transform}
 .step,.plan,.panel,.member,.cols div,.ac,.trust,details{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 .step,.plan,.panel,.member,.cols div,.ac{background:linear-gradient(180deg,rgba(16,20,22,.94),rgba(9,10,13,.92))}
 .plan:nth-child(2){background:linear-gradient(180deg,rgba(22,40,36,.95),rgba(9,11,13,.93))}
@@ -876,8 +878,9 @@ $('cb').onclick=async()=>{
   const sh=document.createElement('div');sh.id='sheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-modal','true');sh.setAttribute('aria-label','Plan details');
   sh.innerHTML=`<div id=sbk></div><div id=scard tabindex=-1></div>`;document.body.appendChild(sh);
   const bk=sh.firstChild,cd=sh.lastChild;let y=0,raf=0,opener=null;
-  function draw(v){y=v;const p=clamp(v/H(),0,1);cd.style.transform='translate3d(0,'+v+'px,0) scale('+(1-p*.1)+')';cd.style.filter=p>.01?'blur('+(p*10)+'px)':'none';bk.style.opacity=1-p}
-  function spring(to,v0,done){cancelAnimationFrame(raf);let vel=v0,last=performance.now();const k=140,c=26;(function f(n){const dt=Math.min((n-last)/1000,.032);last=n;vel+=(-k*(y-to)-c*vel)*dt;draw(y+vel*dt);if(Math.abs(y-to)<.6&&Math.abs(vel)<10){draw(to);if(done)done();return}raf=requestAnimationFrame(f)})(last)}
+  function draw(v){y=v;const p=clamp(v/H(),0,1);cd.style.transform='translate3d(0,'+v+'px,0) scale('+(1-p*.06)+')';bk.style.opacity=1-p}
+  /* time-based slide: finishes on schedule even on slow devices (a frame-capped physics step played in slow motion there) */
+  function spring(to,v0,done){cancelAnimationFrame(raf);const from=y,t0=performance.now(),dur=to>from?240:320,ease=t=>1-Math.pow(1-t,3);(function f(n){const t=Math.min((n-t0)/dur,1);draw(from+(to-from)*ease(t));if(t<1){raf=requestAnimationFrame(f)}else if(done)done()})(t0)}
   function open(p){opener=p;const w=document.createElement('div'),g=document.createElement('div');g.className='grab';w.className=[...p.classList].filter(c=>c==='plan'||c==='rx').join(' ')+' sh';w.innerHTML=p.innerHTML;cd.replaceChildren(g,w);sh.classList.add('on');document.body.style.overflow='hidden';if(window._lenis)window._lenis.stop();draw(H());spring(0,0);if(!rm)w.querySelector('h3').classList.add('mi');cd.focus({preventScroll:true})}
   function close(v,cb){spring(H()+60,v||0,()=>{sh.classList.remove('on');document.body.style.overflow='';if(window._lenis)window._lenis.start();if(cb)cb();else if(opener)opener.focus()})}
   let d=0,sy=0,id=null,hist=[];
