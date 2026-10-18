@@ -4,7 +4,7 @@ The Vasora AI landing page and its owner-only live viewer counter, served by one
 dependency-free Python process (`server.py`).
 
 - `public/index.html` - the landing page
-- `public/frames/hero/` - the 336 hero animation frames
+- `public/frames/hero/` - the hero animation: 42 sprite sheets (8 frames each) plus the first frame
 - `server.py` - serves `public/` plus `POST /heartbeat`, `GET /count?token=...`, `GET /health`
 
 ## Run locally

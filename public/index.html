@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#F5F7F3;--surface:#FFFFFF;--ink:#12292B;--mute:#5B6E6C;--line:#D9E2DC;--brand:#0B7A66;--brand-ink:#FFFFFF;--cut:#B4432F;--add:#0B7A66;--tint:#E3F0EA;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -283,6 +283,154 @@ html.lenis,html.lenis body{height:auto}
 .sb em{position:absolute;top:0;bottom:0;left:57.5%;width:2px;background:#fff;opacity:.7}
 .cuf{background:#F08A74}.cgf{background:#5FD8B8}
 @media(max-width:480px){.dc{padding:8px;font-size:11px}.dc .e{font-size:15px}}
+
+/* ===== Cinematic layer ===== */
+:root:root:root{--brand:#6FE3C3;--gold:#E8C46A}
+::selection{background:rgba(111,227,195,.32);color:#fff}
+h2 em,h1 em,.hhead em{font-family:"Instrument Serif",Georgia,serif;font-style:italic;font-weight:400;letter-spacing:-.01em;color:#CFF5E8}
+/* hero title card */
+#hscrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(5,5,7,.55) 0%,transparent 26%,transparent 46%,rgba(5,5,7,.88) 100%)}
+#htitle{position:absolute;left:0;right:0;bottom:calc(16vh + env(safe-area-inset-bottom,0px));padding:0 6vw;max-width:1100px;pointer-events:none}
+#heroFridge .heyebrow,.heyebrow{font:600 12px/1.2 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:.32em;text-transform:uppercase;color:var(--brand);margin:0 0 20px}
+#heroFridge .hhead{font-size:clamp(46px,8.4vw,128px);line-height:.92;letter-spacing:-.05em;font-weight:600;margin:0 0 22px;max-width:none;text-align:left;text-shadow:0 4px 40px rgba(0,0,0,.6)}
+#heroFridge .hsub{font-size:clamp(16px,1.5vw,20px);color:rgba(255,255,255,.78);max-width:34em;margin:0}
+#hhint{bottom:calc(5vh + env(safe-area-inset-bottom,0px))}
+@media(prefers-reduced-motion:no-preference){#htitle>*{animation:rise 1.3s both cubic-bezier(.2,.7,.2,1)}#htitle .heyebrow{animation-delay:.15s}#htitle .hhead{animation-delay:.3s}#htitle .hsub{animation-delay:.55s}}
+/* section rhythm, numbering and headline scale */
+main{counter-reset:sec}
+section{padding:clamp(80px,12vw,150px) 0}
+main>section:not(#heroFridge):not(#final)>.wrap>h2:first-child::before{counter-increment:sec;content:counter(sec,decimal-leading-zero);display:flex;align-items:center;gap:14px;font:600 12px/1 "Bricolage Grotesque",system-ui,sans-serif;letter-spacing:.32em;color:var(--brand);margin-bottom:22px}
+main>section:not(#heroFridge):not(#final)>.wrap>h2:first-child::after{content:"";display:block;width:56px;height:1px;background:linear-gradient(90deg,var(--brand),transparent);margin-top:26px}
+main>section>.wrap>h2{font-size:clamp(38px,5.6vw,80px);line-height:.98;letter-spacing:-.045em;font-weight:600;margin-bottom:22px;max-width:14em}
+section>.wrap>p:not(.note){font-size:clamp(17px,1.35vw,20px);line-height:1.6}
+/* big centered statements */
+#why,#who{text-align:center}
+#why .wrap>h2,#who .wrap>h2{margin-left:auto;margin-right:auto}
+#why .wrap>h2::before,#who .wrap>h2::before{justify-content:center}
+#why .wrap>h2::after,#who .wrap>h2::after{margin-left:auto;margin-right:auto;background:linear-gradient(90deg,transparent,var(--brand),transparent)}
+#why .wrap>p,#who .wrap>p{margin:0 auto;max-width:38em;font-size:clamp(19px,1.9vw,26px)!important;line-height:1.5;color:rgba(237,244,240,.82)}
+/* surfaces: finer borders, deeper glass, lift on hover */
+.step,.plan,.panel,.member,.cols div{border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(18,22,24,.78),rgba(10,11,14,.72));box-shadow:0 30px 80px -40px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.05)}
+.step,.plan,.member{transition:transform .5s cubic-bezier(.2,.7,.2,1),border-color .4s,box-shadow .4s}
+.step:hover,.plan:hover,.member:hover{transform:translateY(-6px);border-color:rgba(111,227,195,.45);box-shadow:0 40px 90px -40px rgba(111,227,195,.35),inset 0 1px 0 rgba(255,255,255,.07)}
+.steps{gap:20px}
+.step{padding:30px}
+.step b{background:transparent;color:var(--brand);border:1px solid rgba(111,227,195,.5);font-weight:600}
+.plans{gap:20px;align-items:stretch}
+.plan{padding:32px}
+.plan h3{font-size:26px;letter-spacing:-.02em}
+.plan:nth-child(2){border-color:rgba(111,227,195,.35);background:linear-gradient(180deg,rgba(24,44,40,.82),rgba(10,12,14,.75))}
+.btn{border-radius:999px;letter-spacing:.01em;transition:transform .2s,box-shadow .3s,background .3s}
+.btn:not(.alt):hover{box-shadow:0 0 44px -2px rgba(111,227,195,.65)}
+.btn.alt{border-color:rgba(255,255,255,.22)}
+.btn.alt:hover{border-color:rgba(255,255,255,.5)}
+input,select,textarea{border-color:rgba(255,255,255,.12);border-radius:12px;transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{border-color:rgba(111,227,195,.6);box-shadow:0 0 0 4px rgba(111,227,195,.12);outline:none}
+/* two-column layouts on wide screens */
+@media(min-width:960px){
+  #preview .wrap,#join .wrap,#contact .wrap,#faq .wrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);column-gap:72px;align-items:start}
+  #preview .wrap>*,#join .wrap>*,#contact .wrap>*,#faq .wrap>*{grid-column:2}
+  #preview .wrap>h2,#join .wrap>h2,#contact .wrap>h2,#faq .wrap>h2,#preview .wrap>p,#join .wrap>p,#contact .wrap>p{grid-column:1}
+  #preview .wrap>h2,#join .wrap>h2,#contact .wrap>h2,#faq .wrap>h2{grid-row:1}
+  #preview .wrap>p,#join .wrap>p,#contact .wrap>p{grid-row:2}
+  #preview .panel,#join .panel,#contact .panel{grid-row:1 / span 3;max-width:none}
+  #faq details{grid-row:auto}
+  #faq .wrap>h2{grid-row:1 / span 6}
+  #preview .wrap>h2,#join .wrap>h2,#contact .wrap>h2,#faq .wrap>h2{position:sticky;top:120px}
+}
+details{background:transparent;border-radius:0;border-bottom:1px solid rgba(255,255,255,.1);padding:22px 4px;margin:0}
+summary{font-size:19px;font-weight:600}
+/* closing call to action */
+#final{text-align:center;padding:clamp(110px,16vw,200px) 0;background:radial-gradient(60% 70% at 50% 50%,rgba(111,227,195,.14),transparent 70%)}
+#final h2{font-size:clamp(44px,7.4vw,112px);line-height:.95;letter-spacing:-.05em;margin:0 auto 24px;max-width:12em}
+#final p:not(.heyebrow){margin:0 auto 34px;max-width:32em;color:rgba(237,244,240,.8);font-size:clamp(17px,1.5vw,21px)}
+#final .row{justify-content:center}
+/* footer */
+footer{padding:56px 0 calc(48px + env(safe-area-inset-bottom,0px));border-top:1px solid rgba(255,255,255,.08)!important;background:rgba(5,6,8,.85)!important}
+footer .wrap{display:grid;grid-template-columns:1fr auto;gap:22px 40px;align-items:center}
+.fbrand b{display:block;color:var(--ink);font-size:20px;letter-spacing:-.02em}
+.fbrand span{font-size:14px;color:var(--mute)}
+.flinks{display:flex;flex-wrap:wrap;gap:24px}
+.flinks a{color:var(--mute);text-decoration:none;font-size:14px;transition:color .2s}
+.flinks a:hover{color:var(--ink)}
+.fsmall{grid-column:1/-1;margin:0;padding-top:22px;border-top:1px solid rgba(255,255,255,.06);font-size:13px;color:rgba(185,201,196,.7)}
+footer .flinks a{display:inline!important}
+@media(max-width:700px){footer .wrap{grid-template-columns:1fr}#htitle{bottom:calc(14vh + env(safe-area-inset-bottom,0px))}}
+
+/* six co-founders: even grid, no centered straggler */
+.member:last-child{grid-column:auto;width:auto;justify-self:stretch}
+@media(min-width:900px){.team{grid-template-columns:repeat(3,1fr);max-width:none}}
+/* ===== Pro layer ===== */
+.btn:disabled{opacity:.6;cursor:progress}
+.trust{border-top:1px solid rgba(255,255,255,.07);border-bottom:1px solid rgba(255,255,255,.07);background:rgba(8,10,12,.6);backdrop-filter:blur(10px)}
+.trust .wrap{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.titem{display:flex;align-items:center;gap:14px;padding:26px 22px;font-size:14.5px;line-height:1.35;color:var(--mute)}
+.titem+.titem{border-left:1px solid rgba(255,255,255,.07)}
+.titem svg{flex:none;width:26px;height:26px;color:var(--brand)}
+.titem b{color:var(--ink);font-weight:600}
+@media(max-width:900px){.trust .wrap{grid-template-columns:1fr 1fr}.titem:nth-child(3){border-left:0}.titem:nth-child(n+3){border-top:1px solid rgba(255,255,255,.07)}}
+@media(max-width:520px){.trust .wrap{grid-template-columns:1fr}.titem+.titem{border-left:0;border-top:1px solid rgba(255,255,255,.07)}.titem{padding:18px 4px}}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);margin-top:44px;border-top:1px solid rgba(255,255,255,.1)}
+.stat{padding:34px 26px 10px 0}
+.stat+.stat{padding-left:26px;border-left:1px solid rgba(255,255,255,.08)}
+.stat b{display:block;font-size:clamp(44px,5.4vw,78px);line-height:1;letter-spacing:-.05em;font-weight:600;background:linear-gradient(180deg,#fff,#9FE9D3);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:12px}
+.stat span{font-size:15px;color:var(--mute);line-height:1.4;display:block;max-width:14em}
+.src{margin-top:26px!important;font-size:12.5px!important;color:rgba(185,201,196,.55)!important}
+@media(max-width:820px){.stats{grid-template-columns:1fr 1fr}.stat:nth-child(3){padding-left:0;border-left:0}.stat:nth-child(n+3){border-top:1px solid rgba(255,255,255,.08)}}
+.pgrid{display:grid;grid-template-columns:1fr minmax(0,380px);gap:72px;align-items:center;margin-top:44px}
+.pfeat{display:grid;gap:30px}
+.pf{display:flex;gap:18px;align-items:flex-start}
+.pf svg{flex:none;width:44px;height:44px;padding:10px;border-radius:12px;border:1px solid rgba(111,227,195,.35);color:var(--brand);background:rgba(111,227,195,.06)}
+.pf h3{font-size:20px;letter-spacing:-.02em;margin:2px 0 6px}
+.pf p{margin:0;color:var(--mute);font-size:16px}
+.device{justify-self:center;width:100%;max-width:340px;aspect-ratio:9/18.5;border-radius:46px;padding:12px;background:linear-gradient(160deg,#2a3134,#0b0d0f 40%,#1b2124);box-shadow:0 60px 120px -40px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08),0 0 90px -30px rgba(111,227,195,.35)}
+.dscreen{height:100%;border-radius:36px;background:linear-gradient(180deg,#0E1517,#080B0C);padding:26px 18px;display:flex;flex-direction:column;gap:8px;overflow:hidden;font-size:13px}
+.dtop{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:20px;letter-spacing:-.02em;margin-bottom:4px}
+.dpill{font-size:10.5px;font-weight:600;color:var(--brand);border:1px solid rgba(111,227,195,.35);padding:4px 8px;border-radius:999px;letter-spacing:.02em}
+.dchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.dchips span{font-size:10.5px;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.07);color:var(--mute)}
+.dlabel{font-size:10px!important;letter-spacing:.24em;text-transform:uppercase;color:var(--mute)!important;margin:8px 0 2px!important;font-weight:600}
+.drow{display:flex;flex-direction:column;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.04);border-left:3px solid}
+.drow b{font-size:13.5px;font-weight:600}
+.drow span{font-size:11.5px;color:var(--mute)}
+.drow.cut{border-left-color:var(--cut)}
+.drow.add{border-left-color:var(--add)}
+.dcard{margin-top:auto;padding:14px;border-radius:16px;background:linear-gradient(160deg,rgba(111,227,195,.16),rgba(111,227,195,.04));border:1px solid rgba(111,227,195,.25)}
+.dcard b{font-size:15px;display:block;margin-bottom:8px}
+.dnums{display:flex;gap:6px;flex-wrap:wrap}
+.dnums span{font-size:10.5px;padding:3px 8px;border-radius:999px;background:rgba(0,0,0,.35);color:#CFF5E8}
+@media(max-width:860px){.pgrid{grid-template-columns:1fr;gap:48px}}
+#who{text-align:left}
+#who .wrap>h2,#who .wrap>p{margin-left:0!important;margin-right:0!important;text-align:left}
+#who .wrap>h2::before{justify-content:flex-start!important}
+#who .wrap>h2::after{margin-left:0!important;background:linear-gradient(90deg,var(--brand),transparent)!important}
+#who .wrap>p{font-size:clamp(17px,1.35vw,20px)!important}
+.aud{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:40px}
+.ac{padding:26px 22px;border-radius:20px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(18,22,24,.78),rgba(10,11,14,.72));transition:transform .5s cubic-bezier(.2,.7,.2,1),border-color .4s}
+.ac:hover{transform:translateY(-6px);border-color:rgba(111,227,195,.45)}
+.ac svg{width:30px;height:30px;color:var(--brand);margin-bottom:18px}
+.ac h3{font-size:18px;letter-spacing:-.02em;margin:0 0 8px}
+.ac p{margin:0;font-size:14.5px;color:var(--mute);line-height:1.5}
+@media(max-width:1100px){.aud{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:640px){.aud{grid-template-columns:1fr 1fr}.ac{padding:20px 16px}}
+footer .wrap{grid-template-columns:1.4fr 1fr;align-items:start;gap:40px}
+.fbrand span{display:block;max-width:24em;margin:6px 0 18px}
+.fcols{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.fcol>p{margin:0 0 14px;font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--ink)}
+.fcol .flinks{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.fcol .flinks a{font-variant-caps:normal;letter-spacing:0;font-size:14.5px}
+@media(max-width:700px){footer .wrap{grid-template-columns:1fr}}
+
+/* ===== Performance layer: keep scrolling at the display's full frame rate ===== */
+.step,.plan,.panel,.member,.cols div,.ac,.trust,details{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.step,.plan,.panel,.member,.cols div,.ac{background:linear-gradient(180deg,rgba(16,20,22,.94),rgba(9,10,13,.92))}
+.plan:nth-child(2){background:linear-gradient(180deg,rgba(22,40,36,.95),rgba(9,11,13,.93))}
+.trust{background:rgba(8,10,12,.92)}
+body::after{mix-blend-mode:normal;opacity:.035}
+p,li,summary,label,.lead,.hint,nav a:not(.btn){text-shadow:none}
+h1,h2,h3,.hhead{text-shadow:0 2px 14px rgba(4,4,8,.6)}
+#heroFridge,#stage,#day{contain:layout paint}
+.wave{will-change:auto}
 </style>
 </head>
 <body>
@@ -295,13 +443,19 @@ html.lenis,html.lenis body{height:auto}
 </nav>
 </div></header>
 <div id="menu" class="menu" aria-hidden="true">
-<a style="--i:0" href="#how">How it works</a><a style="--i:1" href="#day">A day on your plate</a><a style="--i:1" href="#explore">Explore a fridge</a><a style="--i:2" href="#preview">Try the preview</a><a style="--i:3" href="#plans">Plans</a><a style="--i:4" href="#team">Team</a><a style="--i:5" href="#faq">Questions</a><a style="--i:6" href="#contact">Contact</a>
-<a style="--i:7" class="btn mcta" href="#join">Get early access</a>
+<a style="--i:0" href="#how">How it works</a><a style="--i:1" href="#day">A day on your plate</a><a style="--i:2" href="#explore">Explore a fridge</a><a style="--i:3" href="#preview">Try the preview</a><a style="--i:4" href="#plans">Plans</a><a style="--i:5" href="#team">Team</a><a style="--i:6" href="#faq">Questions</a><a style="--i:7" href="#contact">Contact</a>
+<a style="--i:8" class="btn mcta" href="#join">Get early access</a>
 </div>
 
 <main id="top">
 <section id="heroFridge">
   <canvas id="herocanvas" aria-hidden="true"></canvas>
+  <div id="hscrim" aria-hidden="true"></div>
+  <div id="htitle">
+    <p class="heyebrow">Vasora AI &middot; Personalized food guidance</p>
+    <h2 class="hhead">Eat for the body<br><em>you have.</em></h2>
+    <p class="hsub">For diabetes, hypertension and weight loss. It starts with one photo of your fridge.</p>
+  </div>
   <p id="hhint">Scroll</p>
 </section>
 <div id="stage">
@@ -329,7 +483,7 @@ html.lenis,html.lenis body{height:auto}
 <div class="heroband"><div class="wrap hero">
 <div>
 <p class="eyebrow">Personalized daily food guidance</p>
-<h1>Your fridge, read for your health.</h1>
+<h1>Your fridge, read for <em>your health.</em></h1>
 <p class="lead">Take one photo of your fridge each day. Vasora AI tells you what to cut back on and what to add, then gives you recipes built around your health and your tastes.</p>
 <div class="row"><a class="btn" href="#preview">Try the preview</a><a class="btn alt" href="#join">Get early access</a></div>
 <p class="hint">For type 1 diabetes, type 2 diabetes, hypertension, high body fat, and weight or fat loss.</p>
@@ -337,18 +491,61 @@ html.lenis,html.lenis body{height:auto}
 <div class="phone"><svg viewBox="0 0 260 440" role="img" aria-label="Illustration of a phone scanning a fridge shelf"><rect x="2" y="2" width="256" height="436" rx="38" fill="#10201F" stroke="#3B5F5B" stroke-width="3"/><rect x="16" y="16" width="228" height="408" rx="28" fill="#EEF4F0"/><rect x="96" y="24" width="68" height="14" rx="7" fill="#10201F"/><g stroke="#C5D4CD" stroke-width="3"><path d="M30 170h200M30 270h200M30 370h200"/></g><rect x="44" y="96" width="26" height="74" rx="8" fill="#D9684F"/><rect x="80" y="122" width="44" height="48" rx="6" fill="#8FB8E8"/><circle cx="168" cy="150" r="20" fill="#3FA886"/><circle cx="196" cy="156" r="14" fill="#6CC9A6"/><rect x="44" y="214" width="58" height="56" rx="6" fill="#E8C46A"/><rect x="116" y="232" width="34" height="38" rx="6" fill="#C9A0DC"/><rect x="160" y="224" width="56" height="46" rx="6" fill="#9AD0B8"/><rect x="38" y="88" width="38" height="86" rx="10" fill="none" stroke="#D9684F" stroke-width="2.5" stroke-dasharray="6 4"/><rect x="150" y="122" width="66" height="52" rx="10" fill="none" stroke="#0B7A66" stroke-width="2.5" stroke-dasharray="6 4"/><g font-family="system-ui,sans-serif" font-size="11" font-weight="700"><rect x="28" y="62" width="84" height="22" rx="11" fill="#D9684F"/><text x="70" y="77" text-anchor="middle" fill="#fff">Cut: sugary</text><rect x="146" y="94" width="74" height="22" rx="11" fill="#0B7A66"/><text x="183" y="109" text-anchor="middle" fill="#fff">Add: greens</text></g><rect class="scan" x="22" y="60" width="216" height="4" rx="2" fill="#5FD8B8" opacity=".9"/><rect x="40" y="392" width="180" height="18" rx="9" fill="#C5D4CD"/><text x="130" y="405" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#35504C">Illustration</text></svg></div>
 </div></div>
 
-<section><div class="wrap">
-<h2>Generic nutrition advice misses you</h2>
+<div class="trust"><div class="wrap">
+<div class="titem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>Nutrition data from <b>USDA FoodData Central</b></span></div>
+<div class="titem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M8.5 11h2l1-2 1.5 4 1-2h1.5"/></svg><span>Targets based on <b>DASH &amp; AHA</b> guidance</span></div>
+<div class="titem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg><span>Built for <b>type 1, type 2 &amp; hypertension</b></span></div>
+<div class="titem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Photos stay <b>on your device</b> in the preview</span></div>
+</div></div>
+
+<section id="why"><div class="wrap">
+<h2>Generic nutrition advice <em>misses you.</em></h2>
 <p>"Eat healthy" means something different with type 1 diabetes, type 2 diabetes or hypertension. Carbs, sodium and portions matter in different ways for each person. Vasora AI starts from your body and your condition, then looks at the food you actually have.</p>
 </div></section>
 
+<section id="stats"><div class="wrap">
+<h2>The problem, <em>in numbers.</em></h2>
+<div class="stats">
+<div class="stat"><b>40M+</b><span>Americans live with diabetes</span></div>
+<div class="stat"><b>115M</b><span>U.S. adults have prediabetes</span></div>
+<div class="stat"><b>~1 in 2</b><span>U.S. adults have high blood pressure</span></div>
+<div class="stat"><b>~1 in 4</b><span>of them have it under control</span></div>
+</div>
+<p class="note src">Sources: CDC National Diabetes Statistics Report (2023 estimates); CDC High Blood Pressure Facts.</p>
+</div></section>
+
 <section id="how"><div class="wrap">
-<h2>How it works</h2>
+<h2>How it <em>works</em></h2>
 <div class="steps">
 <div class="step"><b>1</b><div><h3>Answer a short survey</h3><p>Height, weight, conditions, the foods you like and your own needs. Done once.</p></div></div>
 <div class="step"><b>2</b><div><h3>Snap your fridge daily</h3><p>One photo from your phone. Vasora AI sees what you have, so there is no typing out groceries.</p></div></div>
 <div class="step"><b>3</b><div><h3>Get your daily readout</h3><p>What to cut down on and what to add, plus recipes made for your conditions and tastes.</p></div></div>
 </div>
+</div></section>
+
+<section id="product"><div class="wrap">
+<h2>Meet your <em>daily readout.</em></h2>
+<div class="pgrid">
+<div class="pfeat">
+<div class="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><div><h3>One photo, every morning</h3><p>Snap the fridge. Vasora AI recognizes what you have, so there is nothing to log.</p></div></div>
+<div class="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg><div><h3>Cut down, add more</h3><p>A short, clear list for your conditions, not a wall of numbers.</p></div></div>
+<div class="pf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/></svg><div><h3>Recipes from what you have</h3><p>Smart swaps with nutrition calculated from USDA data for every serving.</p></div></div>
+</div>
+<div class="device" aria-label="Product preview of the Vasora AI app" role="img">
+<div class="dscreen">
+<div class="dtop"><span>Today</span><span class="dpill">Scanned 7:42 AM</span></div>
+<div class="dchips"><span>Type 2 diabetes</span><span>Hypertension</span></div>
+<p class="dlabel">Cut down</p>
+<div class="drow cut"><b>Deli turkey</b><span>High in sodium</span></div>
+<div class="drow cut"><b>White bread</b><span>Refined carbs</span></div>
+<p class="dlabel">Add more</p>
+<div class="drow add"><b>Spinach</b><span>Potassium for blood pressure</span></div>
+<div class="drow add"><b>Salmon</b><span>Protein that steadies glucose</span></div>
+<div class="dcard"><p class="dlabel" style="margin:0 0 6px">Tonight</p><b>Lemon salmon with spinach</b><div class="dnums"><span>385 cal</span><span>6 g carbs</span><span>142 mg sodium</span></div></div>
+</div>
+</div>
+</div>
+<p class="note src">Product preview. Screens are illustrative and may change before launch.</p>
 </div></section>
 
 <div id="day">
@@ -373,7 +570,7 @@ html.lenis,html.lenis body{height:auto}
 </div>
 
 <section id="explore"><div class="wrap">
-<h2>Explore a fridge</h2>
+<h2>Explore a <em>fridge</em></h2>
 <p>Pick a condition, then tap or hover over the food. This is what Vasora AI looks for. Sample foods only, not medical advice.</p>
 <div class="ex">
 <div class="fridge" id="fr"><svg id="fsvg" viewBox="0 0 320 360" role="group" aria-label="Interactive fridge"></svg></div>
@@ -399,7 +596,7 @@ html.lenis,html.lenis body{height:auto}
 </div></section>
 
 <section id="preview"><div class="wrap">
-<h2>Try the preview</h2>
+<h2>Try the <em>preview</em></h2>
 <p class="note">The analysis below is a sample, not real advice. The AI isn't connected yet. Your photo stays on your device.</p>
 <div class="panel">
 <div class="bar" aria-hidden="true"><i id="prog" style="width:33%"></i></div>
@@ -462,12 +659,19 @@ html.lenis,html.lenis body{height:auto}
 </div></section>
 
 <section id="who"><div class="wrap">
-<h2>Who it's for</h2>
-<p>People managing type 1 diabetes, type 2 diabetes or high blood pressure, and anyone working on weight loss or fat loss, who wants daily food guidance without logging every meal. Caregivers can use it too.</p>
+<h2>Who it's <em>for</em></h2>
+<p>Daily food guidance without logging every meal, for the conditions where food matters most.</p>
+<div class="aud">
+<div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c-3.5 4.5-6 7.6-6 10.5a6 6 0 0 0 12 0C18 10.6 15.5 7.5 12 3z"/></svg><h3>Type 1 diabetes</h3><p>Carb counts on every recipe. Insulin decisions stay with your care team.</p></div>
+<div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h3l2-5 4 10 2-5h7"/></svg><h3>Type 2 diabetes</h3><p>Swaps that help steady blood sugar, built from what you already buy.</p></div>
+<div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/><circle cx="12" cy="15" r="1"/></svg><h3>High blood pressure</h3><p>Sodium-smart cooking, with potassium-rich foods where they help.</p></div>
+<div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14z"/><path d="M5 19l7-7"/></svg><h3>Weight &amp; fat loss</h3><p>Filling, lighter versions of the meals you already like.</p></div>
+<div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c2.9.4 5.5 2.6 5.5 5.8"/></svg><h3>Caregivers</h3><p>Plan meals for a parent, partner or child with a condition.</p></div>
+</div>
 </div></section>
 
 <section id="plans"><div class="wrap">
-<h2>Plans</h2>
+<h2>Choose your <em>plan</em></h2>
 <p>Start free, or upgrade for more usage and more personalized guidance.</p>
 <div class="plans">
 <div class="plan"><h3>Free</h3><p class="for">Try it at home</p><ul><li>Intake survey</li><li>Daily fridge photo, limited use</li><li>Recipes made for your conditions and tastes</li><li>Cut down / add more readout</li></ul><p class="price">Always free</p><a class="btn alt" href="#join">Join early access</a></div>
@@ -477,19 +681,20 @@ html.lenis,html.lenis body{height:auto}
 </div></section>
 
 <section id="team"><div class="wrap">
-<h2>The team</h2>
-<p>Vasora AI is built by five co-founders.</p>
+<h2>The <em>team</em></h2>
+<p>Vasora AI is built by six co-founders.</p>
 <div class="team">
 <div class="member"><i>RC</i><div><b>Rushil Chandolu</b><span>Co-founder</span></div></div>
 <div class="member"><i>AT</i><div><b>Avyay Thirumulai</b><span>Co-founder</span></div></div>
 <div class="member"><i>AJ</i><div><b>Aaryan Jaiswal</b><span>Co-founder</span></div></div>
 <div class="member"><i>SB</i><div><b>Sashwath Bhaskaran</b><span>Co-founder</span></div></div>
 <div class="member"><i>RS</i><div><b>Rajan Srinivasan</b><span>Co-founder</span></div></div>
+<div class="member"><i>TD</i><div><b>Tanish Dinesh</b><span>Co-founder</span></div></div>
 </div>
 </div></section>
 
 <section id="join"><div class="wrap">
-<h2>Get early access</h2>
+<h2>Get <em>early access</em></h2>
 <p>Join the list and we'll email you when Vasora AI opens up.</p>
 <div class="panel">
 <label for="em">Email</label><input id="em" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com">
@@ -499,7 +704,8 @@ html.lenis,html.lenis body{height:auto}
 </div></section>
 
 <section id="contact"><div class="wrap">
-<h2>Get in touch</h2>
+<h2>Get in <em>touch</em></h2>
+<p>Partnerships, press or feedback. We read every message.</p>
 <div class="panel">
 <label for="cn">Name</label><input id="cn" autocomplete="name">
 <label for="ce">Email</label><input id="ce" type="email" inputmode="email" autocomplete="email">
@@ -512,20 +718,34 @@ html.lenis,html.lenis body{height:auto}
 </div></section>
 
 <section id="faq"><div class="wrap">
-<h2>Questions</h2>
-<details><summary>Does Vasora AI give medical advice?</summary><p>When it launches, yes: Vasora AI is built to give condition-specific dietary guidance for diabetes and hypertension, with our most powerful AI in the Max plan. This preview is only a demo with sample results, so it is not medical advice.</p></details>
+<h2>Common <em>questions</em></h2>
+<details><summary>Does Vasora AI give medical advice?</summary><p>No. Vasora AI gives nutrition guidance built around your conditions, using published dietary guidelines. It doesn't diagnose or treat anything, it never gives insulin or medication advice, and it doesn't replace your care team. This preview shows sample results only.</p></details>
 <details><summary>What happens to my photo?</summary><p>In this preview it never leaves your phone. We'll explain how photos are handled before the real AI launches.</p></details>
 <details><summary>What are the recipes?</summary><p>After you take the survey and snap your fridge, Vasora AI builds recipes from what you already have, made for your conditions and the foods you like. That is why the survey asks about both.</p></details>
 <details><summary>Can Vasora AI help with weight or fat loss?</summary><p>Yes. You can set a goal to lose weight or lose body fat, and the guidance factors in your conditions. It's for adults, and anyone with an eating disorder history should talk to their doctor first.</p></details>
 <details><summary>Why ask for height, weight and race?</summary><p>These help tailor guidance to your body and risk factors. Race is optional.</p></details>
 </div></section>
+
+<section id="final"><div class="wrap">
+<p class="heyebrow">Early access is open</p>
+<h2>Your food, <em>finally personal.</em></h2>
+<p>One photo a day. Guidance built around your body, your conditions and the food you already have.</p>
+<div class="row"><a class="btn" href="#join">Get early access</a><a class="btn alt" href="#preview">Try the preview</a></div>
+</div></section>
 </main>
 
-<footer><div class="wrap">Vasora AI &copy; 2026. Preview build. This preview does not provide medical advice.</div></footer>
+<footer><div class="wrap">
+<div class="fbrand"><b>Vasora AI</b><span>Personalized daily food guidance for diabetes, hypertension and weight loss.</span><a class="btn sm" href="#join">Get early access</a></div>
+<div class="fcols">
+<div class="fcol"><p>Product</p><nav class="flinks" aria-label="Product"><a href="#how">How it works</a><a href="#product">Daily readout</a><a href="#explore">Explore a fridge</a><a href="#preview">Try the preview</a><a href="#plans">Plans</a></nav></div>
+<div class="fcol"><p>Company</p><nav class="flinks" aria-label="Company"><a href="#team">Team</a><a href="#contact">Contact</a><a href="#faq">FAQ</a><a href="mailto:vasora.ai@gmail.com">vasora.ai@gmail.com</a></nav></div>
+</div>
+<p class="fsmall">&copy; 2026 Vasora AI. Preview build. This preview does not provide medical advice.</p>
+</div></footer>
 
 <script>
 const $=id=>document.getElementById(id);
-const step=n=>{[1,2,3].forEach(i=>$('s'+i).classList.toggle('hide',i!==n));$('prog').style.width=(n*33.4)+'%';$('preview').scrollIntoView();const h=document.querySelector('#s'+n+' h3');if(h&&!matchMedia('(prefers-reduced-motion:reduce)').matches){h.classList.remove('mi');void h.offsetWidth;h.classList.add('mi')}};
+const step=n=>{[1,2,3].forEach(i=>$('s'+i).classList.toggle('hide',i!==n));$('prog').style.width=(n*33.4)+'%';goTo('#preview');const h=document.querySelector('#s'+n+' h3');if(h&&!matchMedia('(prefers-reduced-motion:reduce)').matches){h.classList.remove('mi');void h.offsetWidth;h.classList.add('mi')}};
 let photoURL=null;
 $('n1').onclick=()=>{
   const mt=document.querySelector('input[name=u]:checked').value==='m',w=+$('wt').value*(mt?2.2046:1),h=+$('ht').value/(mt?2.54:1),e=$('e1');
@@ -602,35 +822,31 @@ $('again').onclick=()=>{
   $('drop').innerHTML='<span>Tap to take or choose a photo</span>';$('photo').value='';step(1)};
 
 const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-async function save(col,data,msgEl,doneText){
-  msgEl.className='';msgEl.textContent='';
-  try{
-    const db=await claude.use('db'),u=await claude.use('user');
-    if(!db||!u)throw new Error('offline');
-    const id=await u.id();
-    await db.collection(col).doc(id).set({...data,at:new Date().toISOString()});
-    msgEl.className='ok';msgEl.textContent=doneText;return true;
-  }catch(e){
-    msgEl.className='err';msgEl.textContent='Could not save right now. Please try again later.';return false}}
 const TO='vasora.ai@gmail.com';
-function go(u){const a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove()}
-function mail(subj,body,m){
-  const q=encodeURIComponent,ua=navigator.userAgent;
-  const web='https://mail.google.com/mail/?view=cm&fs=1&to='+TO+'&su='+q(subj)+'&body='+q(body);
-  let u=web;
-  if(/iPhone|iPad|iPod/i.test(ua))u='googlegmail://co?to='+TO+'&subject='+q(subj)+'&body='+q(body);
-  else if(/Android/i.test(ua))u='intent:mailto:'+TO+'?subject='+q(subj)+'&body='+q(body)+'#Intent;action=android.intent.action.SENDTO;package=com.google.android.gm;S.browser_fallback_url='+q(web)+';end';
-  go(u);
-  m.className='ok';m.textContent='Opening Gmail with your message ready. Press send to finish. ';
-  const l=document.createElement('a');l.href=web;l.target='_blank';l.rel='noopener';l.style.color='inherit';l.textContent='Open Gmail in your browser instead';m.appendChild(l)}
-$('jb').onclick=()=>{
+/* Forms deliver straight to the Vasora inbox through FormSubmit (no account,
+   no page change). If it fails, offer a plain email link instead. */
+async function send(fields,btn,m,doneText,subj,body){
+  m.className='';m.textContent='Sending\u2026';btn.disabled=true;
+  try{
+    const r=await fetch('https://formsubmit.co/ajax/'+TO,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(Object.assign({_template:'table',_captcha:'false'},fields))});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||String(d.success)!=='true')throw new Error(d.message||'send failed');
+    m.className='ok';m.textContent=doneText;return true;
+  }catch(err){
+    m.className='err';m.textContent='Could not send right now. ';
+    const l=document.createElement('a');l.href='mailto:'+TO+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);l.style.color='inherit';l.textContent='Email us instead';m.appendChild(l);return false;
+  }finally{btn.disabled=false}
+}
+$('jb').onclick=async()=>{
   const e=$('em').value.trim(),m=$('jm');
   if(!ok.test(e)){m.className='err';m.textContent='Enter a valid email address.';return}
-  mail('Vasora AI early access','Please add me to the Vasora AI early access list.\n\nMy email: '+e,m)};
-$('cb').onclick=()=>{
-  const n=$('cn').value.trim(),e=$('ce').value.trim(),m=$('cmsg');
+  if(await send({_subject:'New early access signup',email:e,signup:'Early access list'},$('jb'),m,'You\u2019re on the list. We\u2019ll email you when Vasora AI opens up.','Vasora AI early access','Please add me to the Vasora AI early access list.\n\nMy email: '+e))$('em').value=''};
+$('cb').onclick=async()=>{
+  const n=$('cn').value.trim(),e=$('ce').value.trim(),t=$('ct').value,msg=$('cm').value.trim(),m=$('cmsg');
   if(!n||!ok.test(e)){m.className='err';m.textContent='Add your name and a valid email.';return}
-  mail('Vasora AI: '+$('ct').value,'Name: '+n+'\nEmail: '+e+'\nTopic: '+$('ct').value+'\n\n'+$('cm').value.trim(),m)};
+  if(!msg){m.className='err';m.textContent='Add a short message.';return}
+  if(await send({_subject:'Website message: '+t,_replyto:e,name:n,email:e,topic:t,message:msg},$('cb'),m,'Message sent. We\u2019ll get back to you soon.','Vasora AI: '+t,'Name: '+n+'\nEmail: '+e+'\nTopic: '+t+'\n\n'+msg)){$('cn').value='';$('ce').value='';$('cm').value=''}};
+
 (function(){
   if(matchMedia('(prefers-reduced-motion:reduce)').matches||!('IntersectionObserver' in window))return;
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
@@ -638,8 +854,6 @@ $('cb').onclick=()=>{
     el.classList.add('rv');
     el.style.transitionDelay=Math.min(Array.from(el.parentNode.children).indexOf(el),4)*90+'ms';
     io.observe(el)});
-  let t=0;
-  addEventListener('scroll',()=>{if(!t){t=1;requestAnimationFrame(()=>{document.documentElement.style.setProperty('--py',Math.min(scrollY,900));t=0})}},{passive:true});
 })();
 (function(){
   const rm=matchMedia('(prefers-reduced-motion:reduce)').matches,clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),H=()=>innerHeight;
@@ -647,22 +861,25 @@ $('cb').onclick=()=>{
   let tx=0,ty=0,cx=0,cy=0;
   function onO(e){if(e.gamma==null)return;tx=clamp(e.gamma/30,-1,1);ty=clamp((e.beta-45)/30,-1,1)}
   if(!rm){
-    addEventListener('deviceorientation',onO);
-    addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){tx=(e.clientX/innerWidth-.5)*2;ty=(e.clientY/innerHeight-.5)*2}},{passive:true});
-    if(window.DeviceOrientationEvent&&DeviceOrientationEvent.requestPermission)addEventListener('click',()=>{DeviceOrientationEvent.requestPermission().then(r=>{if(r==='granted')addEventListener('deviceorientation',onO)}).catch(()=>{})},{once:true});
-    (function loop(){cx+=(tx-cx)*.05;cy+=(ty-cy)*.05;amb.style.setProperty('--gx',(60+cx*25)+'%');amb.style.setProperty('--gy',(30+cy*25)+'%');amb.style.setProperty('--ga',(160+cx*25)+'deg');window._tl=[cx,cy];requestAnimationFrame(loop)})();
+    let ambRun=false;
+    function loop(){cx+=(tx-cx)*.05;cy+=(ty-cy)*.05;amb.style.setProperty('--gx',(60+cx*25)+'%');amb.style.setProperty('--gy',(30+cy*25)+'%');amb.style.setProperty('--ga',(160+cx*25)+'deg');window._tl=[cx,cy];
+      if(Math.abs(tx-cx)>.002||Math.abs(ty-cy)>.002)requestAnimationFrame(loop);else ambRun=false}
+    const kick=()=>{if(!ambRun){ambRun=true;requestAnimationFrame(loop)}};
+    addEventListener('deviceorientation',e=>{onO(e);kick()});
+    addEventListener('pointermove',e=>{if(e.pointerType==='mouse'){tx=(e.clientX/innerWidth-.5)*2;ty=(e.clientY/innerHeight-.5)*2;kick()}},{passive:true});
+    kick();
   }
   if(!rm&&'IntersectionObserver' in window){
     const io2=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io2.unobserve(e.target)}}),{threshold:.2});
     document.querySelectorAll('main section h2').forEach(h=>{h.classList.add('hd');io2.observe(h)});
   }
-  const sh=document.createElement('div');sh.id='sheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-modal','true');
+  const sh=document.createElement('div');sh.id='sheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-modal','true');sh.setAttribute('aria-label','Plan details');
   sh.innerHTML=`<div id=sbk></div><div id=scard tabindex=-1></div>`;document.body.appendChild(sh);
   const bk=sh.firstChild,cd=sh.lastChild;let y=0,raf=0,opener=null;
   function draw(v){y=v;const p=clamp(v/H(),0,1);cd.style.transform='translate3d(0,'+v+'px,0) scale('+(1-p*.1)+')';cd.style.filter=p>.01?'blur('+(p*10)+'px)':'none';bk.style.opacity=1-p}
   function spring(to,v0,done){cancelAnimationFrame(raf);let vel=v0,last=performance.now();const k=140,c=26;(function f(n){const dt=Math.min((n-last)/1000,.032);last=n;vel+=(-k*(y-to)-c*vel)*dt;draw(y+vel*dt);if(Math.abs(y-to)<.6&&Math.abs(vel)<10){draw(to);if(done)done();return}raf=requestAnimationFrame(f)})(last)}
-  function open(p){opener=p;const w=document.createElement('div'),g=document.createElement('div');g.className='grab';w.className=[...p.classList].filter(c=>c==='plan'||c==='rx').join(' ')+' sh';w.innerHTML=p.innerHTML;cd.replaceChildren(g,w);sh.classList.add('on');document.body.style.overflow='hidden';draw(H());spring(0,0);if(!rm)w.querySelector('h3').classList.add('mi');cd.focus({preventScroll:true})}
-  function close(v,cb){spring(H()+60,v||0,()=>{sh.classList.remove('on');document.body.style.overflow='';if(cb)cb();else if(opener)opener.focus()})}
+  function open(p){opener=p;const w=document.createElement('div'),g=document.createElement('div');g.className='grab';w.className=[...p.classList].filter(c=>c==='plan'||c==='rx').join(' ')+' sh';w.innerHTML=p.innerHTML;cd.replaceChildren(g,w);sh.classList.add('on');document.body.style.overflow='hidden';if(window._lenis)window._lenis.stop();draw(H());spring(0,0);if(!rm)w.querySelector('h3').classList.add('mi');cd.focus({preventScroll:true})}
+  function close(v,cb){spring(H()+60,v||0,()=>{sh.classList.remove('on');document.body.style.overflow='';if(window._lenis)window._lenis.start();if(cb)cb();else if(opener)opener.focus()})}
   let d=0,sy=0,id=null,hist=[];
   cd.addEventListener('pointerdown',e=>{id=e.pointerId;sy=e.clientY;d=0;hist=[[e.timeStamp,e.clientY]];cancelAnimationFrame(raf)});
   cd.addEventListener('pointermove',e=>{if(e.pointerId!==id)return;const dy=e.clientY-sy;if(!d&&Math.abs(dy)<6)return;if(!d){d=1;cd.setPointerCapture(id)}hist.push([e.timeStamp,e.clientY]);if(hist.length>6)hist.shift();draw(dy>0?dy:dy*.2)});
@@ -703,9 +920,9 @@ void main(){
   vec3 rf=reflect(-v,n);
   float env=smoothstep(.2,.9,rf.y*.5+.5);
   float band=pow(abs(sin(rf.y*5.+rf.x*2.)),12.);
-  vec3 col=mix(vec3(.02,.02,.03),vec3(.16,.07,.36),env);
-  vec3 lil=vec3(.72,.62,1.);
-  col+=lil*band*.55;
+  vec3 col=mix(vec3(.015,.02,.022),vec3(.03,.13,.12),env);
+  vec3 lil=vec3(.42,.92,.78);
+  col+=lil*band*.38;
   col+=lil*pow(1.-clamp(dot(n,v),0.,1.),3.)*.5;
   col+=vec3(1.)*pow(clamp(dot(rf,normalize(vec3(-.4,.6,.7))),0.,1.),40.)*.8;
   gl_FragColor=vec4(col*.52,1.);}`;
@@ -717,12 +934,12 @@ void main(){
   const loc=gl.getAttribLocation(pg,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
   const U=n=>gl.getUniformLocation(pg,n);
   const ur=U('r'),ut=U('t'),utl=U('tl');
-  function fit(){const s=Math.min(devicePixelRatio||1,1.5)*.6;cv.width=Math.max(2,innerWidth*s|0);cv.height=Math.max(2,innerHeight*s|0);gl.viewport(0,0,cv.width,cv.height)}
+  function fit(){const s=.5;cv.width=Math.max(2,innerWidth*s|0);cv.height=Math.max(2,innerHeight*s|0);gl.viewport(0,0,cv.width,cv.height)}
   function draw(now){const tl=window._tl||[0,0];gl.uniform2f(ur,cv.width,cv.height);gl.uniform1f(ut,now/1000);gl.uniform2f(utl,tl[0],tl[1]);gl.drawArrays(gl.TRIANGLES,0,3)}
   fit();addEventListener('resize',()=>{fit();draw(performance.now())});
   if(matchMedia('(prefers-reduced-motion:reduce)').matches){draw(8000);return}
   let vis=true,run=false;
-  function frame(now){if(!vis){run=false;return}if(!window._wp)draw(now);requestAnimationFrame(frame)}
+  function frame(now){if(!vis){run=false;return}if(!window._wp&&!window._cov)draw(now);requestAnimationFrame(frame)}
   document.addEventListener('visibilitychange',()=>{vis=!document.hidden;if(vis&&!run){run=true;requestAnimationFrame(frame)}});run=true;requestAnimationFrame(frame);
 })();
 ['wt','ht'].forEach(id=>{const el=$(id);el.addEventListener('keydown',e=>{if(['-','+','e','E'].includes(e.key))e.preventDefault()});el.addEventListener('input',()=>{if(el.value&&+el.value<0)el.value=Math.abs(el.value)})});
@@ -736,14 +953,14 @@ document.querySelectorAll('input[name=u]').forEach(r=>r.addEventListener('change
 const menu=$('menu'),mb=$('mbtn');
 function setMenu(o){menu.classList.toggle('open',o);mb.setAttribute('aria-expanded',o);menu.setAttribute('aria-hidden',!o);document.body.style.overflow=o?'hidden':'';const L=window._lenis;if(L){o?L.stop():L.start()}}
 mb.addEventListener('click',()=>setMenu(!menu.classList.contains('open')));
-addEventListener('keydown',e=>{if(e.key==='Escape')setMenu(false)});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&menu.classList.contains('open'))setMenu(false)});
 function goTo(h){const L=window._lenis,t=h==='#top'?0:document.querySelector(h);if(t===null)return;
   if(L)L.scrollTo(t,{offset:t===0?0:-60,duration:1.4});else if(t===0)scrollTo({top:0,behavior:'smooth'});else t.scrollIntoView({behavior:'smooth'})}
 document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a||a.closest('#scard'))return;const h=a.getAttribute('href');if(h.length<2)return;
   e.preventDefault();const was=menu.classList.contains('open');if(was)setMenu(false);setTimeout(()=>goTo(h),was?60:0)});
 const spy=[...document.querySelectorAll('.links a')].map(a=>[a,document.querySelector(a.getAttribute('href'))]).filter(x=>x[1]);
 function onSpy(){let cur=null;spy.forEach(([a,t])=>{if(t.getBoundingClientRect().top<=innerHeight*.35)cur=a});spy.forEach(([a])=>a.classList.toggle('on',a===cur))}
-addEventListener('scroll',onSpy,{passive:true});onSpy();
+let spyT=0;addEventListener('scroll',()=>{if(!spyT){spyT=requestAnimationFrame(()=>{spyT=0;onSpy()})}},{passive:true});onSpy();
 (function(){
   const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;
   const F=[
@@ -758,7 +975,7 @@ addEventListener('scroll',onSpy,{passive:true});onSpy();
   const C={cut:['#F08A74','Cut down','\u2715'],add:['#5FD8B8','Add more','\u2713'],ok:['#E8C46A','OK in moderation','~']};
   const pos=i=>[55+70*(i%4),i<4?80:225];
   const sv=$('fsvg'),NS='http://www.w3.org/2000/svg';
-  let seen=F.map(()=>false),cur=null,run=0;
+  let seen=F.map(()=>false),cur=null,run=0,rcpShown=false;
   let h='<defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5FD8B8" stop-opacity="0"/><stop offset="1" stop-color="#5FD8B8" stop-opacity=".4"/></linearGradient></defs><rect x="8" y="8" width="304" height="344" rx="26" fill="#10181A" stroke="#2C4547" stroke-width="3"/><rect x="18" y="18" width="284" height="324" rx="18" fill="#16262A"/><path d="M30 148h260M30 293h260" stroke="#3A5A5C" stroke-width="3" opacity=".7"/><rect x="30" y="306" width="260" height="26" rx="8" fill="#1D3236"/>';
   F.forEach((f,i)=>{const [x,y]=pos(i);h+='<g class="it" data-i="'+i+'" transform="translate('+x+' '+y+')" tabindex="0" role="button" aria-label="'+f[1]+'"><g class="in"><circle class="ring" r="30" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.15)" stroke-width="2.5"/><text font-size="34" text-anchor="middle" dy=".35em">'+f[0]+'</text></g><text y="54" font-size="11" text-anchor="middle" fill="#B9C9C4" font-family="system-ui,sans-serif">'+f[1]+'</text><g class="bd"><circle cx="24" cy="-24" r="10"/><text x="24" y="-24" dy=".35em" font-size="12" font-weight="700" text-anchor="middle" fill="#08201C" font-family="system-ui,sans-serif"></text></g></g>'});
   h+='<rect id="sw" x="18" y="0" width="284" height="40" fill="url(#sg)" opacity="0"/>';
@@ -775,18 +992,18 @@ addEventListener('scroll',onSpy,{passive:true});onSpy();
     if(cur===null){fd.innerHTML='<p style="margin:0">Tap or hover over a food, or scan the whole fridge.</p>'+tally;return}
     const v=F[cur][2][k],c=C[v[0]];
     fd.innerHTML='<span class="tag" style="color:'+c[0]+'">'+c[1]+'</span><h3 style="margin-top:8px">'+F[cur][1]+'</h3><p style="margin:0">'+v[1]+'</p>'+tally}
-  function sel(i){cur=i;seen[i]=true;paint()}
+  function sel(i){cur=i;seen[i]=true;paint();if(rcpShown)rcpRun()}
   els.forEach((el,i)=>{el.addEventListener('click',()=>sel(i));el.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse')sel(i)});el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();sel(i)}})});
   document.querySelectorAll('input[name=ec]').forEach(r=>r.addEventListener('change',paint));
   $('scanb').onclick=()=>{
     cancelAnimationFrame(run);
-    if(rm){seen=seen.map(()=>true);paint();return}
+    if(rm){seen=seen.map(()=>true);paint();if(rcpShown)rcpRun();return}
     seen=seen.map(()=>false);cur=null;paint();
     const sw=$('sw'),t0=performance.now(),D=1800;
     (function f(n){const p=Math.min((n-t0)/D,1),y=18+p*320;sw.setAttribute('y',y-40);sw.setAttribute('opacity',p<1?1:0);
       F.forEach((_,i)=>{if(pos(i)[1]<=y)seen[i]=true});paint();
-      if(p<1)run=requestAnimationFrame(f)})(t0)};
-  $('rstb').onclick=()=>{cancelAnimationFrame(run);seen=seen.map(()=>false);cur=null;$('sw').setAttribute('opacity',0);paint()};
+      if(p<1)run=requestAnimationFrame(f);else if(rcpShown)rcpRun()})(t0)};
+  $('rstb').onclick=()=>{cancelAnimationFrame(run);seen=seen.map(()=>false);cur=null;$('sw').setAttribute('opacity',0);paint();if(rcpShown)rcpRun()};
   const fr=$('fr');
   fr.addEventListener('pointermove',e=>{if(rm)return;const r=fr.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;sv.style.transform='rotateY('+(x*14)+'deg) rotateX('+(-y*14)+'deg)'});
   ['pointerleave','pointercancel'].forEach(t=>fr.addEventListener(t,()=>{sv.style.transform=''}));
@@ -854,11 +1071,11 @@ addEventListener('scroll',onSpy,{passive:true});onSpy();
   function applySwaps(ing,sw){let out=ing.slice();sw.forEach(([from,to])=>{const i=out.findIndex(x=>x[0]===from);if(i>=0)out.splice(i,1,...to)});return out}
   function fmt(v,u){if(u==='g'&&Math.abs(v)<10){const r=Math.round(v*10)/10;return (r===0?0:r).toFixed(1)}const r=Math.round(v);return String(r===0?0:r)}
   const rcpIn=$('rcpIn'),rcpGo=$('rcpGo'),rcpOut=$('rcpOut');
-  let rcpShown=false;
   function rcpRun(){
     const txt=rcpIn.value.trim().toLowerCase();
     if(!txt){rcpOut.innerHTML='<p class="note" style="margin:0">Type a food you like, then tap "Get a recipe".</p>';rcpShown=false;return}
-    const hit=RECIPES.find(r=>r.m.some(k=>txt.includes(k)));
+    const word=k=>new RegExp('(^|[^a-z])'+k.replace(/[-]/g,'\\-')+'(e?s)?([^a-z]|$)').test(txt);
+    const hit=RECIPES.find(r=>r.m.some(word));
     if(!hit){rcpShown=false;rcpOut.innerHTML='<p style="margin:0">We don’t have a sample recipe for that yet. Try one of these: '+RECIPES.map(r=>r.m[0]).join(', ')+'.</p>';return}
     rcpShown=true;
     const k=cond(),sw=hit.sw[k]||[],ing=applySwaps(hit.ing,sw);
@@ -951,36 +1168,45 @@ if(heroCanvas){
     img.src='frames/hero/frame-0001.webp';
     heroCanvas.replaceWith(img);
   }else{
-    const ctx=heroCanvas.getContext('2d'),frames=new Array(HERO_N),loaded=new Array(HERO_N).fill(false);
+    const ctx=heroCanvas.getContext('2d'),loaded=new Array(HERO_N).fill(false);
+    /* frames are packed 8 per sprite sheet (2 columns x 4 rows of 1280x720), so a visit
+       makes 42 image requests instead of 336 - static hosts rate-limit big bursts */
+    const PER=8,COLS=2,FW=1280,FH=720,SHEETS=Math.ceil(HERO_N/PER),sheets=new Array(SHEETS);
     let want=0,last=-1;
-    const path=i=>'frames/hero/frame-'+String(i+1).padStart(4,'0')+'.webp';
-    function paint(img){
-      const dpr=Math.min(devicePixelRatio||1,3),r=heroCanvas.getBoundingClientRect();
+    const path=s=>'frames/hero/sheet-'+String(s).padStart(2,'0')+'.webp';
+    function paint(i){
+      const img=sheets[Math.floor(i/PER)],k=i%PER,sx=(k%COLS)*FW,sy=Math.floor(k/COLS)*FH;
+      const dpr=Math.min(devicePixelRatio||1,1.5),r=heroCanvas.getBoundingClientRect();
       const cw=Math.round(r.width*dpr),ch=Math.round(r.height*dpr);
       if(!cw||!ch)return;
       if(heroCanvas.width!==cw||heroCanvas.height!==ch){heroCanvas.width=cw;heroCanvas.height=ch}
-      const s=Math.max(cw/img.naturalWidth,ch/img.naturalHeight),dw=img.naturalWidth*s,dh=img.naturalHeight*s;
-      ctx.clearRect(0,0,cw,ch);ctx.drawImage(img,(cw-dw)/2,(ch-dh)/2,dw,dh);
+      const s=Math.max(cw/FW,ch/FH),dw=FW*s,dh=FH*s;
+      ctx.clearRect(0,0,cw,ch);ctx.drawImage(img,sx,sy,FW,FH,(cw-dw)/2,(ch-dh)/2,dw,dh);
     }
     heroSetFrame=i=>{
       i=Math.max(0,Math.min(HERO_N-1,Math.round(i)));want=i;
-      if(loaded[i]){if(i!==last){paint(frames[i]);last=i}return}
+      if(loaded[i]){if(i!==last){paint(i);last=i}return}
       /* exact frame not downloaded yet: show nearest already-loaded frame instead of
          freezing, so fast scrolling still looks continuous while the rest arrive */
       for(let d=1;d<HERO_N;d++){
         const a=i-d,b=i+d;
-        if(a>=0&&loaded[a]){if(a!==last){paint(frames[a]);last=a}return}
-        if(b<HERO_N&&loaded[b]){if(b!==last){paint(frames[b]);last=b}return}
+        if(a>=0&&loaded[a]){if(a!==last){paint(a);last=a}return}
+        if(b<HERO_N&&loaded[b]){if(b!==last){paint(b);last=b}return}
       }
     };
     const heroResize=()=>{if(last>-1){const l=last;last=-1;heroSetFrame(l)}};
-    for(let i=0;i<HERO_N;i++){
+    /* download sheets in order, 3 at a time; retry a failed one with backoff
+       (a fresh query string so a cached error response isn't reused) */
+    let next=0;
+    function loadSheet(s,attempt){
       const im=new Image();
       im.decoding='async';
-      if('fetchPriority' in im)im.fetchPriority=i<60?'high':'low';
-      im.onload=()=>{loaded[i]=true;if(i===want)heroSetFrame(i)};
-      im.src=path(i);frames[i]=im;
+      im.onload=()=>{sheets[s]=im;for(let k=0;k<PER&&s*PER+k<HERO_N;k++)loaded[s*PER+k]=true;heroSetFrame(want);pump()};
+      im.onerror=()=>{if(attempt<5)setTimeout(()=>loadSheet(s,attempt+1),1500*(attempt+1));else pump()};
+      im.src=path(s)+(attempt?'?r='+attempt:'');
     }
+    function pump(){if(next<SHEETS)loadSheet(next++,0)}
+    for(let c=0;c<3;c++)pump();
     addEventListener('resize',heroResize,{passive:true});
     heroSetFrame(0);
   }
@@ -988,7 +1214,9 @@ if(heroCanvas){
 if(heroCanvas){
   const heroProg={f:0};
   const heroTl=gsap.timeline({defaults:{ease:'none'},scrollTrigger:{trigger:'#heroFridge',start:'top top',end:'+=180%',pin:true,scrub:true,anticipatePin:1}})
-    .to('#hhint',{opacity:0,duration:.08},0);
+    .to('#hhint',{opacity:0,duration:.08},0)
+    .fromTo('#htitle',{opacity:1,yPercent:0},{opacity:0,yPercent:-18,duration:.16,immediateRender:false},0)
+    .fromTo('#hscrim',{opacity:1},{opacity:0,duration:.2,immediateRender:false},0);
   if(!reduce)heroTl.to(heroProg,{f:HERO_N-1,duration:1,onUpdate(){heroSetFrame(heroProg.f)}},0);
 }
 /* diagram setup */
@@ -998,11 +1226,12 @@ gsap.set('#diag',{opacity:1});
 gsap.set(dhc,{yPercent:115});
 gsap.set('.fnd',{opacity:0,scale:.6,transformOrigin:'50% 50%'});
 gsap.set('.fel',{opacity:0});gsap.set('#dc',{opacity:0});
+const dotTweens=[];
 if(!reduce){
   const dots=$$('.fdot');
   paths.forEach((p,i)=>{const L=p.getTotalLength(),o={t:0};
-    gsap.to(o,{t:1,duration:2.2+i*.4,repeat:-1,ease:'none',delay:i*.4,onUpdate(){const pt=p.getPointAtLength(o.t*L);dots[i].setAttribute('cx',pt.x);dots[i].setAttribute('cy',pt.y)}})});
-  gsap.to('#hp',{scale:1.07,svgOrigin:'490 470',repeat:-1,yoyo:true,duration:.45,ease:'power1.inOut'});
+    dotTweens[dotTweens.length]=gsap.to(o,{t:1,duration:2.2+i*.4,repeat:-1,ease:'none',delay:i*.4,onUpdate(){const pt=p.getPointAtLength(o.t*L);dots[i].setAttribute('cx',pt.x);dots[i].setAttribute('cy',pt.y)}})});
+  dotTweens[dotTweens.length]=gsap.to('#hp',{scale:1.07,svgOrigin:'490 470',repeat:-1,yoyo:true,duration:.45,ease:'power1.inOut'});
 }
 /* intro on load: title and the three nodes appear */
 gsap.timeline({delay:.15})
@@ -1016,7 +1245,10 @@ const stageTl=gsap.timeline({defaults:{ease:'none'},scrollTrigger:{trigger:'#sta
   .to('.fdot',{opacity:reduce?0:1,duration:.3},2)
   .to('#dc',{opacity:1,duration:.5},2);
 addEventListener('load',()=>ScrollTrigger.refresh());
-new IntersectionObserver(es=>{window._wp=es[0].isIntersecting}).observe(stage);
+new IntersectionObserver(es=>{window._wp=es[0].isIntersecting;/* diagram animations only run while the diagram is on screen */window._wp?dotTweens.forEach(t=>t.resume()):dotTweens.forEach(t=>t.pause())}).observe(stage);
+/* the fridge hero is opaque and full-screen: while it fills the view, the background shader has nothing to show */
+const hf=document.getElementById('heroFridge');
+if(hf)new IntersectionObserver(es=>{window._cov=es[0].intersectionRatio>.98},{threshold:[0,.98,1]}).observe(hf);
 })();
 </script>
 <script>
