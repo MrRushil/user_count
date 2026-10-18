@@ -1319,6 +1319,15 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
   }
 
   // Every visitor: a quiet heartbeat so the server's count reflects real traffic.
+  // One anonymous random id per browser (localStorage), so the server can count
+  // distinct visitors per day; the per-tab sid below drives the live count.
+  var vid=(function(){
+    try{
+      var k='vasoraVid',v=localStorage.getItem(k);
+      if(!v){v=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():(Date.now()+'-'+Math.random().toString(36).slice(2));localStorage.setItem(k,v);}
+      return v;
+    }catch(e){return null;}
+  })();
   var sid=(function(){
     try{
       var k='vasoraLiveSid',v=sessionStorage.getItem(k);
@@ -1334,7 +1343,7 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
     beating=true;
     try{
       // text/plain keeps this a "simple" CORS request: no preflight per beat.
-      req(API_BASE+'/heartbeat',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({sid:sid})})
+      req(API_BASE+'/heartbeat',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(vid?{sid:sid,vid:vid}:{sid:sid})})
         .catch(function(){}).finally(function(){beating=false;});
     }catch(e){beating=false;}
   }
@@ -1378,7 +1387,7 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
           if(!d||typeof d.count!=='number')return Promise.reject('bad');
           misses=0;
           var n=d.count;
-          countEl.textContent='live: '+n+(n===1?' viewer':' viewers');
+          countEl.textContent='live: '+n+(n===1?' viewer':' viewers')+(typeof d.today==='number'?' \u00b7 '+d.today+' today':'');
         })
         .catch(function(err){
           misses++;

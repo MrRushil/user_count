@@ -10,28 +10,33 @@ Pure standard library, no dependencies.
                           Records "this session is still here" with a timestamp.
                           No auth - any visitor's browser calls this every ~10s.
 
-  GET  /count?token=XXX  Returns {"count": N} = number of distinct session ids
-                          heard from in the last STALE_AFTER seconds, but only
-                          if token matches LIVE_TOKEN. Wrong/missing token gets
+  GET  /count?token=XXX  Returns {"count": N, "today": M, "day": "YYYY-MM-DD"}:
+                          N = distinct tabs heard from in the last STALE_AFTER
+                          seconds, M = distinct visitors (per-browser "vid")
+                          seen since midnight in DAY_TZ. Only if token matches
+                          LIVE_TOKEN. Wrong/missing token gets
                           a 403, not the real number - this is what keeps the
                           count owner-only (a shared secret the owner puts in
                           the page URL, not a login check).
 
   GET  /health           {"ok": true}
 
-Sessions are kept in memory only. That's fine for a simple live counter: if
-the process restarts, the count just starts over at 0 and repopulates within
-one heartbeat interval.
+Live sessions are kept in memory only: if the process restarts, the live count
+starts over and repopulates within one heartbeat interval. The daily visitor
+set is kept in a Redis-compatible store (Render Key Value, KV_URL) so it
+survives the free web service sleeping; without KV_URL it falls back to memory.
 
-Run: PORT=8000 LIVE_TOKEN=some-long-random-string python3 server.py
+Run: PORT=8000 LIVE_TOKEN=some-long-random-string [KV_URL=redis://host:6379] python3 server.py
 """
 import hmac
 import json
 import mimetypes
 import os
 import re
+import socket
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote, urlsplit
 
@@ -42,6 +47,14 @@ SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 MAX_BODY = 1024  # a heartbeat body is ~50 bytes
 MAX_SESSIONS = 50_000  # hard cap so junk sids can't exhaust memory
 PRUNE_EVERY = 1.0  # seconds; avoid an O(n) sweep on every single heartbeat
+DAY_TZ = os.environ.get("DAY_TZ", "America/Los_Angeles")
+KV_URL = os.environ.get("KV_URL", "").strip()
+DAY_TTL = 8 * 24 * 3600  # keep a week of daily sets
+try:
+    from zoneinfo import ZoneInfo
+    _TZ = ZoneInfo(DAY_TZ)
+except Exception:  # no tz database on the host: Pacific standard time is close enough
+    _TZ = timezone(timedelta(hours=-8))
 PUBLIC_DIR = os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "public"))
 
 mimetypes.add_type("image/webp", ".webp")
@@ -61,6 +74,100 @@ def _prune_locked(force=False):
     dead = [sid for sid, t in _sessions.items() if t < cutoff]
     for sid in dead:
         del _sessions[sid]
+
+
+def _today():
+    return datetime.now(_TZ).strftime("%Y-%m-%d")
+
+
+class KV:
+    """Just enough of the Redis protocol (RESP) for SADD / SCARD / EXPIRE."""
+
+    def __init__(self, url):
+        u = urlsplit(url)
+        self.addr = (u.hostname, u.port or 6379)
+        self.password = unquote(u.password) if u.password else None
+        self.user = unquote(u.username) if u.username else None
+        self.sock = None
+        self.lock = threading.Lock()
+
+    def _connect(self):
+        s = socket.create_connection(self.addr, timeout=3)
+        self.sock, self.rfile = s, s.makefile("rb")
+        if self.password:
+            self._send(["AUTH"] + ([self.user] if self.user else []) + [self.password])
+
+    def _send(self, args):
+        out = [b"*%d\r\n" % len(args)]
+        for a in args:
+            b = str(a).encode()
+            out.append(b"$%d\r\n%s\r\n" % (len(b), b))
+        self.sock.sendall(b"".join(out))
+        return self._read()
+
+    def _read(self):
+        line = self.rfile.readline()
+        if not line:
+            raise ConnectionError("closed")
+        kind, rest = line[:1], line[1:-2]
+        if kind == b"-":
+            raise RuntimeError(rest.decode())
+        if kind == b":":
+            return int(rest)
+        if kind == b"+":
+            return rest.decode()
+        if kind == b"$":
+            n = int(rest)
+            return None if n < 0 else self.rfile.read(n + 2)[:-2].decode()
+        if kind == b"*":
+            return [self._read() for _ in range(int(rest))]
+        raise RuntimeError("bad reply")
+
+    def call(self, *args):
+        with self.lock:
+            for attempt in (1, 2):  # reconnect once if the connection went stale
+                try:
+                    if self.sock is None:
+                        self._connect()
+                    return self._send(list(args))
+                except (OSError, ConnectionError):
+                    self.sock = None
+                    if attempt == 2:
+                        raise
+
+
+_kv = KV(KV_URL) if KV_URL else None
+_day_mem = {}  # fallback: day -> set of vids
+MAX_DAY_MEM = 200_000
+
+
+def _record_visit(vid):
+    day = _today()
+    if _kv:
+        try:
+            key = "visitors:" + day
+            if _kv.call("SADD", key, vid):
+                _kv.call("EXPIRE", key, DAY_TTL)
+            return
+        except Exception as e:
+            print(f"KV write failed, using memory: {e}", flush=True)
+    with _lock:
+        for d in [d for d in _day_mem if d != day]:
+            del _day_mem[d]
+        s = _day_mem.setdefault(day, set())
+        if len(s) < MAX_DAY_MEM:
+            s.add(vid)
+
+
+def _visitors_today():
+    day = _today()
+    if _kv:
+        try:
+            return day, int(_kv.call("SCARD", "visitors:" + day) or 0)
+        except Exception as e:
+            print(f"KV read failed, using memory: {e}", flush=True)
+    with _lock:
+        return day, len(_day_mem.get(day, ()))
 
 
 def _token_ok(token):
@@ -141,7 +248,8 @@ class Handler(BaseHTTPRequestHandler):
             with _lock:
                 _prune_locked(force=True)
                 count = len(_sessions)
-            self._send_json(200, {"count": count})
+            day, today = _visitors_today()
+            self._send_json(200, {"count": count, "today": today, "day": day})
             return
         if route == "/health":
             self._send_json(200, {"ok": True})
@@ -185,6 +293,8 @@ class Handler(BaseHTTPRequestHandler):
         if full:
             self._send_json(503, {"error": "busy"})
             return
+        vid = data.get("vid")
+        _record_visit(vid if isinstance(vid, str) and SID_RE.match(vid) else sid)
         self._send_json(200, {"ok": True})
 
 
@@ -193,6 +303,7 @@ def main():
         print("WARNING: LIVE_TOKEN is not set - /count will always return 403.", flush=True)
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"Vasora site + live counter listening on 0.0.0.0:{PORT}", flush=True)
+    print("Daily visitors stored in " + ("Key Value store" if _kv else "memory (set KV_URL to persist)"), flush=True)
     server.serve_forever()
 
 

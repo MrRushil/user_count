@@ -5,7 +5,7 @@ dependency-free Python process (`server.py`).
 
 - `public/index.html` - the landing page
 - `public/frames/hero/` - the hero animation: 42 sprite sheets (8 frames each) plus the first frame
-- `server.py` - serves `public/` plus `POST /heartbeat`, `GET /count?token=...`, `GET /health`
+- `server.py` - serves `public/` plus `POST /heartbeat`, `GET /count?token=...` (live viewers and today's distinct visitors), `GET /health`
 
 ## Run locally
 
@@ -17,4 +17,4 @@ Open http://localhost:8000 (add `?live=your-secret` to see the viewer badge).
 
 - Build command: `pip install -r requirements.txt` (nothing to install; the file is empty)
 - Start command: `python3 server.py`
-- Environment variable: `LIVE_TOKEN` = the owner token
+- Environment variables: `LIVE_TOKEN` = the owner token; `KV_URL` = the internal URL of the `vasora-visitors` Key Value store (keeps the daily total when the free service sleeps); `DAY_TZ` = time zone for "today" (default America/Los_Angeles)
