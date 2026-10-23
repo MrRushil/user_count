@@ -668,7 +668,7 @@ h1,h2,h3,.hhead{text-shadow:0 2px 14px rgba(4,4,8,.6)}
 <div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h3l2-5 4 10 2-5h7"/></svg><h3>Type 2 diabetes</h3><p>Swaps that help steady blood sugar, built from what you already buy.</p></div>
 <div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15a8 8 0 1 1 16 0"/><path d="M12 15l4-5"/><circle cx="12" cy="15" r="1"/></svg><h3>High blood pressure</h3><p>Sodium-smart cooking, with potassium-rich foods where they help.</p></div>
 <div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14z"/><path d="M5 19l7-7"/></svg><h3>Weight &amp; fat loss</h3><p>Filling, lighter versions of the meals you already like.</p></div>
-<div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c2.9.4 5.5 2.6 5.5 5.8"/></svg><h3>Caregivers</h3><p>Plan meals for a parent, partner or child with a condition.</p></div>
+<div class="ac"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c2.9.4 5.5 2.6 5.5 5.8"/></svg><h3>Caregivers</h3><p>Plan meals for a parent or partner with a condition.</p></div>
 </div>
 </div></section>
 
@@ -1369,8 +1369,8 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
     var badge=document.createElement('div');
     badge.id='liveBadge';
     badge.setAttribute('aria-hidden','true');
-    badge.style.cssText='position:fixed;left:16px;bottom:16px;z-index:9999;display:flex;align-items:center;gap:8px;padding:9px 15px;border-radius:999px;background:rgba(8,8,12,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px -10px rgba(0,0,0,.6);color:#E8F1EC;font:600 12.5px/1 system-ui,-apple-system,sans-serif;letter-spacing:.02em;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s';
-    badge.innerHTML='<span id="liveDot" style="width:7px;height:7px;flex:none;border-radius:50%;background:#5FD8B8;box-shadow:0 0 0 0 rgba(95,216,184,.55);animation:liveDotPulse 1.8s ease-out infinite"></span><span id="liveCount">live: —</span>';
+    badge.style.cssText='position:fixed;left:16px;bottom:16px;z-index:9999;display:flex;align-items:center;gap:10px;padding:10px 15px;border-radius:16px;background:rgba(8,8,12,.92);max-width:calc(100vw - 32px);border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px -10px rgba(0,0,0,.6);color:#E8F1EC;font:600 12.5px/1 system-ui,-apple-system,sans-serif;letter-spacing:.02em;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s';
+    badge.innerHTML='<span id="liveDot" style="width:7px;height:7px;flex:none;border-radius:50%;background:#5FD8B8;box-shadow:0 0 0 0 rgba(95,216,184,.55);animation:liveDotPulse 1.8s ease-out infinite"></span><span style="display:flex;flex-direction:column;gap:5px"><span id="liveCount">live: —</span><span id="liveStats" style="font-weight:500;font-size:11.5px;color:#9AB0AB;letter-spacing:.01em;display:none"></span></span>';
     document.body.appendChild(badge);
     if(!document.getElementById('liveBadgeStyle')){
       var st=document.createElement('style');
@@ -1380,7 +1380,8 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
     }
     requestAnimationFrame(function(){badge.style.opacity='1';badge.style.transform='none';});
 
-    var countEl=document.getElementById('liveCount');
+    var countEl=document.getElementById('liveCount'),statsEl=document.getElementById('liveStats');
+    var fmtN=function(x){try{return Number(x).toLocaleString()}catch(e){return String(x)}};
     var misses=0;
     function poll(){
       // chained setTimeout, not setInterval: never more than one poll in flight
@@ -1390,7 +1391,8 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
           if(!d||typeof d.count!=='number')return Promise.reject('bad');
           misses=0;
           var n=d.count;
-          countEl.textContent='live: '+n+(n===1?' viewer':' viewers')+(typeof d.today==='number'?' \u00b7 '+d.today+' today':'');
+          countEl.textContent='live: '+n+(n===1?' viewer':' viewers');
+          if(typeof d.today==='number'){statsEl.textContent=fmtN(d.today)+' today \u00b7 '+fmtN(d.week||0)+' this week \u00b7 '+fmtN(d.total||0)+' all time';statsEl.style.display=''}
         })
         .catch(function(err){
           misses++;

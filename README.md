@@ -5,7 +5,7 @@ dependency-free Python process (`server.py`).
 
 - `public/index.html` - the landing page
 - `public/frames/hero/` - the hero animation: 42 sprite sheets (8 frames each) plus the first frame
-- `server.py` - serves `public/` plus `POST /heartbeat`, `GET /count?token=...` (live viewers and today's distinct visitors), `GET /health`
+- `server.py` - serves `public/` plus `POST /heartbeat`, `GET /count?token=...` (live viewers plus distinct visitors today, this week and all time), `GET /health`
 
 ## Run locally
 
