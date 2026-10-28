@@ -231,7 +231,8 @@ html.lenis,html.lenis body{height:auto}
 
 #stage{padding:0;border:0}
 #heroFridge{position:relative;height:100vh;height:100svh;width:100%;overflow:hidden;background-color:#050507;background-image:url('frames/hero/frame-0001.webp');background-position:center;background-size:cover;background-repeat:no-repeat}
-#herocanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#herocanvas{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
+@media(max-aspect-ratio:1/1){img#herocanvas{object-fit:contain;object-position:50% 38%}}
 #hhint{position:absolute;left:0;right:0;bottom:calc(9vh + env(safe-area-inset-bottom,0px));text-align:center;margin:0;font-size:12px;letter-spacing:.4em;text-transform:uppercase;color:rgba(255,255,255,.72);pointer-events:none;text-shadow:0 2px 24px rgba(0,0,0,.85)}
 .fstatic #stage{height:auto!important;min-height:100svh}
 .fstatic #gl,.fstatic #t1,.fstatic #t2,.fstatic #hint{display:none}
@@ -1183,6 +1184,8 @@ if(heroCanvas){
     /* frames are packed 8 per sprite sheet (2 columns x 4 rows of 1280x720), so a visit
        makes 42 image requests instead of 336 - static hosts rate-limit big bursts */
     const PER=8,COLS=2,FW=1280,FH=720,SHEETS=Math.ceil(HERO_N/PER),sheets=new Array(SHEETS);
+    const blurCv=document.createElement('canvas');blurCv.width=32;blurCv.height=18;
+    const blurCtx=blurCv.getContext('2d');
     let want=0,last=-1;
     const path=s=>'frames/hero/sheet-'+String(s).padStart(2,'0')+'.webp';
     function paint(i){
@@ -1191,8 +1194,36 @@ if(heroCanvas){
       const cw=Math.round(r.width*dpr),ch=Math.round(r.height*dpr);
       if(!cw||!ch)return;
       if(heroCanvas.width!==cw||heroCanvas.height!==ch){heroCanvas.width=cw;heroCanvas.height=ch}
-      const s=Math.max(cw/FW,ch/FH),dw=FW*s,dh=FH*s;
-      ctx.clearRect(0,0,cw,ch);ctx.drawImage(img,sx,sy,FW,FH,(cw-dw)/2,(ch-dh)/2,dw,dh);
+      const cover=Math.max(cw/FW,ch/FH);
+      /* tall (phone) screens: cover-cropping keeps only the middle quarter of the 16:9 shot
+         and cuts off the doors and the reminder card, so show at least 62% of the width and
+         fill above and below with a soft, darkened copy of the same frame */
+      const s=Math.min(cover,cw/(FW*.62));
+      if(s>=cover){
+        const dw=FW*s,dh=FH*s;
+        ctx.clearRect(0,0,cw,ch);ctx.drawImage(img,sx,sy,FW,FH,(cw-dw)/2,(ch-dh)/2,dw,dh);
+        return;
+      }
+      /* blur for free: shrink to a tiny canvas, then let smoothing stretch it back up */
+      blurCtx.drawImage(img,sx,sy,FW,FH,0,0,32,18);
+      const bw=FW*cover,bh=FH*cover;
+      ctx.imageSmoothingQuality='low';
+      ctx.drawImage(blurCv,0,0,32,18,(cw-bw)/2,(ch-bh)/2,bw,bh);
+      ctx.fillStyle='rgba(5,5,7,.5)';ctx.fillRect(0,0,cw,ch);
+      ctx.imageSmoothingQuality='high';
+      /* from ~frame 210 the overlays (health panel, phone, reminder card) sit in the right half
+         of the shot, so slide the view from centre to the right edge as they come in */
+      const dw=FW*s,dh=FH*s,t=Math.min(1,Math.max(0,(i-196)/28)),pan=t*t*(3-2*t);
+      const dx=(cw-dw)/2-pan*(dw-cw)/2,dy=Math.max(0,ch*.38-dh/2);
+      ctx.drawImage(img,sx,sy,FW,FH,dx,dy,dw,dh);
+      /* feather the band's top and bottom edges into the fill */
+      const f=Math.round(dh*.14);
+      let g=ctx.createLinearGradient(0,dy,0,dy+f);
+      g.addColorStop(0,'rgba(5,5,7,.85)');g.addColorStop(1,'rgba(5,5,7,0)');
+      ctx.fillStyle=g;ctx.fillRect(0,dy,cw,f);
+      g=ctx.createLinearGradient(0,dy+dh-f,0,dy+dh);
+      g.addColorStop(0,'rgba(5,5,7,0)');g.addColorStop(1,'rgba(5,5,7,.85)');
+      ctx.fillStyle=g;ctx.fillRect(0,dy+dh-f,cw,f);
     }
     heroSetFrame=i=>{
       i=Math.max(0,Math.min(HERO_N-1,Math.round(i)));want=i;
