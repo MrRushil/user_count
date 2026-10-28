@@ -21,6 +21,11 @@ Pure standard library, no dependencies.
                           count owner-only (a shared secret the owner puts in
                           the page URL, not a login check).
 
+  POST /waitlist         body: {"email": "..."} sent by the page after a successful
+                          waitlist signup. Stores only a keyed hash of the
+                          address (the emails themselves live in the inbox), so
+                          /count can report how many distinct people joined.
+
   GET  /health           {"ok": true}
 
 Live sessions are kept in memory only: if the process restarts, the live count
@@ -30,6 +35,7 @@ survives the free web service sleeping; without KV_URL it falls back to memory.
 
 Run: PORT=8000 LIVE_TOKEN=some-long-random-string [KV_URL=redis://host:6379] python3 server.py
 """
+import hashlib
 import hmac
 import json
 import mimetypes
@@ -200,6 +206,40 @@ def _visitor_stats():
         }
 
 
+WAITLIST_KEY = "waitlist:signups"
+EMAIL_RE = re.compile(r"^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,24}$")
+_waitlist_mem = set()
+
+
+def _email_fingerprint(email):
+    """Keyed one-way hash: counts each address once without storing it."""
+    key = (LIVE_TOKEN or "vasora-waitlist").encode()
+    return hmac.new(key, email.strip().lower().encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def _record_signup(email):
+    fp = _email_fingerprint(email)
+    if _kv:
+        try:
+            _kv.call("SADD", WAITLIST_KEY, fp)
+            return
+        except Exception as e:
+            print(f"KV write failed, using memory: {e}", flush=True)
+    with _lock:
+        if len(_waitlist_mem) < MAX_MEM:
+            _waitlist_mem.add(fp)
+
+
+def _waitlist_count():
+    if _kv:
+        try:
+            return int(_kv.call("SCARD", WAITLIST_KEY) or 0)
+        except Exception as e:
+            print(f"KV read failed, using memory: {e}", flush=True)
+    with _lock:
+        return len(_waitlist_mem)
+
+
 def _backfill():
     """Fold the saved daily sets (kept 8 days) into this week's set and the
     all-time count, once, so the new totals don't start from zero."""
@@ -304,6 +344,7 @@ class Handler(BaseHTTPRequestHandler):
                 count = len(_sessions)
             stats = _visitor_stats()
             stats["count"] = count
+            stats["waitlist"] = _waitlist_count()
             self._send_json(200, stats)
             return
         if route == "/health":
@@ -318,7 +359,8 @@ class Handler(BaseHTTPRequestHandler):
     do_HEAD = do_GET
 
     def do_POST(self):
-        if self._route() != "/heartbeat":
+        route = self._route()
+        if route not in ("/heartbeat", "/waitlist"):
             self._send_json(404, {"error": "not_found"})
             return
         try:
@@ -334,7 +376,17 @@ class Handler(BaseHTTPRequestHandler):
             data = json.loads(raw.decode("utf-8")) if raw else {}
         except (ValueError, UnicodeDecodeError):
             data = {}
-        sid = data.get("sid") if isinstance(data, dict) else None
+        if not isinstance(data, dict):
+            data = {}
+        if route == "/waitlist":
+            email = data.get("email")
+            if not isinstance(email, str) or not EMAIL_RE.match(email.strip()):
+                self._send_json(400, {"error": "bad_email"})
+                return
+            _record_signup(email)
+            self._send_json(200, {"ok": True})
+            return
+        sid = data.get("sid")
         if not isinstance(sid, str) or not SID_RE.match(sid):
             self._send_json(400, {"error": "bad_sid"})
             return

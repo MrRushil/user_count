@@ -843,10 +843,14 @@ async function send(fields,btn,m,doneText,subj,body){
     const l=document.createElement('a');l.href='mailto:'+TO+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);l.style.color='inherit';l.textContent='Email us instead';m.appendChild(l);return false;
   }finally{btn.disabled=false}
 }
+/* tell the counter server about a confirmed signup so the owner badge can show the
+   waitlist size; it stores only a hash of the address, never the address itself */
+const COUNTER='https://vasora-live-counter.onrender.com';
+function reportSignup(email){try{fetch(COUNTER+'/waitlist',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({email:email}),keepalive:true}).catch(()=>{})}catch(e){}}
 $('jb').onclick=async()=>{
   const e=$('em').value.trim(),m=$('jm');
   if(!ok.test(e)){m.className='err';m.textContent='Enter a valid email address.';return}
-  if(await send({_subject:'New waitlist signup',email:e,signup:'Waitlist'},$('jb'),m,'You\u2019re on the waitlist. We\u2019ll email you the moment Vasora AI opens.','Vasora AI waitlist','Please add me to the Vasora AI waitlist.\n\nMy email: '+e))$('em').value=''};
+  if(await send({_subject:'New waitlist signup',email:e,signup:'Waitlist'},$('jb'),m,'You\u2019re on the waitlist. We\u2019ll email you the moment Vasora AI opens.','Vasora AI waitlist','Please add me to the Vasora AI waitlist.\n\nMy email: '+e)){reportSignup(e);$('em').value=''}};
 $('cb').onclick=async()=>{
   const n=$('cn').value.trim(),e=$('ce').value.trim(),t=$('ct').value,msg=$('cm').value.trim(),m=$('cmsg');
   if(!n||!ok.test(e)){m.className='err';m.textContent='Add your name and a valid email.';return}
@@ -1374,7 +1378,7 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
     badge.id='liveBadge';
     badge.setAttribute('aria-hidden','true');
     badge.style.cssText='position:fixed;left:16px;bottom:16px;z-index:9999;display:flex;align-items:center;gap:10px;padding:10px 15px;border-radius:16px;background:rgba(8,8,12,.92);max-width:calc(100vw - 32px);border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px -10px rgba(0,0,0,.6);color:#E8F1EC;font:600 12.5px/1 system-ui,-apple-system,sans-serif;letter-spacing:.02em;pointer-events:none;opacity:0;transform:translateY(6px);transition:opacity .5s,transform .5s';
-    badge.innerHTML='<span id="liveDot" style="width:7px;height:7px;flex:none;border-radius:50%;background:#5FD8B8;box-shadow:0 0 0 0 rgba(95,216,184,.55);animation:liveDotPulse 1.8s ease-out infinite"></span><span style="display:flex;flex-direction:column;gap:5px"><span id="liveCount">live: —</span><span id="liveStats" style="font-weight:500;font-size:11.5px;color:#9AB0AB;letter-spacing:.01em;display:none"></span></span>';
+    badge.innerHTML='<span id="liveDot" style="width:7px;height:7px;flex:none;border-radius:50%;background:#5FD8B8;box-shadow:0 0 0 0 rgba(95,216,184,.55);animation:liveDotPulse 1.8s ease-out infinite"></span><span style="display:flex;flex-direction:column;gap:5px"><span id="liveCount">live: —</span><span id="liveStats" style="font-weight:500;font-size:11.5px;color:#9AB0AB;letter-spacing:.01em;display:none"></span><span id="liveWait" style="font-weight:600;font-size:11.5px;color:#6FE3C3;letter-spacing:.01em;display:none"></span></span>';
     document.body.appendChild(badge);
     if(!document.getElementById('liveBadgeStyle')){
       var st=document.createElement('style');
@@ -1384,7 +1388,7 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
     }
     requestAnimationFrame(function(){badge.style.opacity='1';badge.style.transform='none';});
 
-    var countEl=document.getElementById('liveCount'),statsEl=document.getElementById('liveStats');
+    var countEl=document.getElementById('liveCount'),statsEl=document.getElementById('liveStats'),waitEl=document.getElementById('liveWait');
     var fmtN=function(x){try{return Number(x).toLocaleString()}catch(e){return String(x)}};
     var misses=0;
     function poll(){
@@ -1397,6 +1401,7 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
           var n=d.count;
           countEl.textContent='live: '+n+(n===1?' viewer':' viewers');
           if(typeof d.today==='number'){statsEl.textContent=fmtN(d.today)+' today \u00b7 '+fmtN(d.week||0)+' this week \u00b7 '+fmtN(d.total||0)+' all time';statsEl.style.display=''}
+          if(typeof d.waitlist==='number'){waitEl.textContent=fmtN(d.waitlist)+(d.waitlist===1?' person':' people')+' on the waitlist';waitEl.style.display=''}
         })
         .catch(function(err){
           misses++;
