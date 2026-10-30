@@ -5,7 +5,7 @@ dependency-free Python process (`server.py`).
 
 - `public/index.html` - the landing page
 - `public/frames/hero/` - the hero animation: 42 sprite sheets (8 frames each) plus the first frame
-- `server.py` - serves `public/` plus `POST /heartbeat`, `GET /count?token=...` (live viewers, distinct visitors today / this week / all time, and waitlist size); `POST /waitlist` counts signups by a keyed hash of the email, `GET /health`
+- `server.py` - serves `public/` plus `POST /heartbeat`, `GET /count?token=...` (live viewers, distinct visitors today / this week / all time, and waitlist size); `POST /waitlist` counts signups by a keyed hash of the email, `POST /queue` holds a form when FormSubmit is down and retries delivery every 2 minutes until it goes through, `GET /health`
 
 ## Run locally
 

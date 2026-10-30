@@ -26,6 +26,13 @@ Pure standard library, no dependencies.
                           address (the emails themselves live in the inbox), so
                           /count can report how many distinct people joined.
 
+  POST /queue            body: {"fields": {...}} - the same fields the page sends to
+                          FormSubmit. The page calls this only when FormSubmit
+                          itself is down; the form is held in Key Value
+                          (forms:pending) and a background thread retries the
+                          delivery every RETRY_EVERY seconds, deleting it once
+                          FormSubmit accepts it. /count reports how many wait.
+
   GET  /health           {"ok": true}
 
 Live sessions are kept in memory only: if the process restarts, the live count
@@ -44,6 +51,7 @@ import re
 import socket
 import threading
 import time
+import urllib.request
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, unquote, urlsplit
@@ -57,6 +65,11 @@ MAX_SESSIONS = 50_000  # hard cap so junk sids can't exhaust memory
 PRUNE_EVERY = 1.0  # seconds; avoid an O(n) sweep on every single heartbeat
 DAY_TZ = os.environ.get("DAY_TZ", "America/Los_Angeles")
 KV_URL = os.environ.get("KV_URL", "").strip()
+FORM_ENDPOINT = os.environ.get("FORM_ENDPOINT", "https://formsubmit.co/ajax/vasora.ai@gmail.com")
+SITE_ORIGIN = os.environ.get("SITE_ORIGIN", "https://www.vasorahealth.net")  # the origin FormSubmit activated
+RETRY_EVERY = int(os.environ.get("RETRY_EVERY", "120"))
+MAX_FORM_BODY = 8192  # a contact message can be a few KB
+FORM_FIELDS = {"_subject", "_replyto", "_template", "_captcha", "name", "email", "topic", "message", "signup"}
 DAY_TTL = 8 * 24 * 3600  # keep a week of daily sets
 WEEK_TTL = 15 * 24 * 3600  # keep last week's set around too
 try:
@@ -240,6 +253,97 @@ def _waitlist_count():
         return len(_waitlist_mem)
 
 
+PENDING_KEY = "forms:pending"
+MAX_PENDING = 5000
+_pending_mem = []
+
+
+def _queue_form(fields):
+    item = json.dumps({"fields": fields, "queued": int(time.time())})
+    if _kv:
+        try:
+            if int(_kv.call("LLEN", PENDING_KEY) or 0) >= MAX_PENDING:
+                return False
+            _kv.call("RPUSH", PENDING_KEY, item)
+            return True
+        except Exception as e:
+            print(f"KV write failed, using memory: {e}", flush=True)
+    with _lock:
+        if len(_pending_mem) >= MAX_PENDING:
+            return False
+        _pending_mem.append(item)
+        return True
+
+
+def _pending():
+    if _kv:
+        try:
+            return list(_kv.call("LRANGE", PENDING_KEY, 0, 49) or [])
+        except Exception as e:
+            print(f"KV read failed, using memory: {e}", flush=True)
+    with _lock:
+        return list(_pending_mem[:50])
+
+
+def _pending_count():
+    if _kv:
+        try:
+            return int(_kv.call("LLEN", PENDING_KEY) or 0)
+        except Exception:
+            pass
+    with _lock:
+        return len(_pending_mem)
+
+
+def _drop_pending(item):
+    if _kv:
+        try:
+            _kv.call("LREM", PENDING_KEY, 1, item)
+            return
+        except Exception as e:
+            print(f"KV delete failed: {e}", flush=True)
+    with _lock:
+        if item in _pending_mem:
+            _pending_mem.remove(item)
+
+
+def _deliver(fields):
+    """Send one held form to FormSubmit, posing as the activated site origin.
+    True only when FormSubmit says it accepted the submission."""
+    body = json.dumps(dict({"_template": "table", "_captcha": "false"}, **fields)).encode()
+    req = urllib.request.Request(FORM_ENDPOINT, data=body, method="POST", headers={
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Origin": SITE_ORIGIN,
+        "Referer": SITE_ORIGIN + "/",
+        "User-Agent": "Mozilla/5.0 (compatible; VasoraSite/1.0; +" + SITE_ORIGIN + ")",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            reply = json.loads(r.read().decode("utf-8") or "{}")
+        return str(reply.get("success")) == "true", reply.get("message", "")
+    except Exception as e:
+        return False, str(e)
+
+
+def _retry_loop():
+    while True:
+        time.sleep(RETRY_EVERY)
+        for item in _pending():
+            try:
+                fields = json.loads(item)["fields"]
+            except Exception:
+                _drop_pending(item)  # unreadable entry: nothing to deliver
+                continue
+            ok, msg = _deliver(fields)
+            if ok:
+                _drop_pending(item)
+                print("Delivered a held form to FormSubmit", flush=True)
+            else:
+                print(f"FormSubmit still failing ({msg[:120]}); will retry", flush=True)
+                break  # it's down: try the rest next round
+
+
 def _backfill():
     """Fold the saved daily sets (kept 8 days) into this week's set and the
     all-time count, once, so the new totals don't start from zero."""
@@ -345,6 +449,7 @@ class Handler(BaseHTTPRequestHandler):
             stats = _visitor_stats()
             stats["count"] = count
             stats["waitlist"] = _waitlist_count()
+            stats["pending"] = _pending_count()
             self._send_json(200, stats)
             return
         if route == "/health":
@@ -360,16 +465,17 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         route = self._route()
-        if route not in ("/heartbeat", "/waitlist"):
+        if route not in ("/heartbeat", "/waitlist", "/queue"):
             self._send_json(404, {"error": "not_found"})
             return
         try:
             length = int(self.headers.get("Content-Length") or "0")
         except ValueError:
             length = -1
-        if length < 0 or length > MAX_BODY:
+        limit = MAX_FORM_BODY if route == "/queue" else MAX_BODY
+        if length < 0 or length > limit:
             self.close_connection = True
-            self._send_json(413 if length > MAX_BODY else 400, {"error": "bad_length"})
+            self._send_json(413 if length > limit else 400, {"error": "bad_length"})
             return
         raw = self.rfile.read(length) if length else b""
         try:
@@ -378,6 +484,23 @@ class Handler(BaseHTTPRequestHandler):
             data = {}
         if not isinstance(data, dict):
             data = {}
+        if route == "/queue":
+            fields = data.get("fields")
+            if (not isinstance(fields, dict) or not fields or set(fields) - FORM_FIELDS
+                    or not all(isinstance(v, str) for v in fields.values())):
+                self._send_json(400, {"error": "bad_fields"})
+                return
+            email = fields.get("email", "")
+            if not EMAIL_RE.match(email.strip()):
+                self._send_json(400, {"error": "bad_email"})
+                return
+            if not _queue_form(fields):
+                self._send_json(503, {"error": "busy"})
+                return
+            if fields.get("signup"):
+                _record_signup(email)
+            self._send_json(200, {"ok": True})
+            return
         if route == "/waitlist":
             email = data.get("email")
             if not isinstance(email, str) or not EMAIL_RE.match(email.strip()):
@@ -412,6 +535,7 @@ def main():
     print(f"Vasora site + live counter listening on 0.0.0.0:{PORT}", flush=True)
     print("Visitor totals stored in " + ("Key Value store" if _kv else "memory (set KV_URL to persist)"), flush=True)
     threading.Thread(target=_backfill, daemon=True).start()
+    threading.Thread(target=_retry_loop, daemon=True).start()
     server.serve_forever()
 
 

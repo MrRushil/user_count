@@ -843,6 +843,7 @@ const TO='vasora.ai@gmail.com';
 /* Forms deliver straight to the Vasora inbox through FormSubmit (no account,
    no page change). If it fails, offer a plain email link instead. */
 async function send(fields,btn,m,doneText,subj,body){
+  send.held=false;
   m.className='';m.textContent='Sending\u2026';btn.disabled=true;
   try{
     const r=await fetch('https://formsubmit.co/ajax/'+TO,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(Object.assign({_template:'table',_captcha:'false'},fields))});
@@ -850,6 +851,9 @@ async function send(fields,btn,m,doneText,subj,body){
     if(!r.ok||String(d.success)!=='true')throw new Error(d.message||'send failed');
     m.className='ok';m.textContent=doneText;return true;
   }catch(err){
+    /* FormSubmit is down or refused: hand the form to our own server, which holds it
+       and keeps retrying the delivery to the inbox until it goes through */
+    if(await holdForLater(fields)){send.held=true;m.className='ok';m.textContent=doneText;return true}
     m.className='err';m.textContent='Could not send right now. ';
     const l=document.createElement('a');l.href='mailto:'+TO+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);l.style.color='inherit';l.textContent='Email us instead';m.appendChild(l);return false;
   }finally{btn.disabled=false}
@@ -857,11 +861,18 @@ async function send(fields,btn,m,doneText,subj,body){
 /* tell the counter server about a confirmed signup so the owner badge can show the
    waitlist size; it stores only a hash of the address, never the address itself */
 const COUNTER='https://vasora-live-counter.onrender.com';
+async function holdForLater(fields){
+  try{
+    const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),45000);  /* the free server may need ~30 s to wake */
+    const r=await fetch(COUNTER+'/queue',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({fields:fields}),signal:ctl.signal});
+    clearTimeout(t);return r.ok;
+  }catch(e){return false}
+}
 function reportSignup(email){try{fetch(COUNTER+'/waitlist',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({email:email}),keepalive:true}).catch(()=>{})}catch(e){}}
 $('jb').onclick=async()=>{
   const e=$('em').value.trim(),m=$('jm');
   if(!ok.test(e)){m.className='err';m.textContent='Enter a valid email address.';return}
-  if(await send({_subject:'New early access signup',email:e,signup:'Early access'},$('jb'),m,'You\u2019re signed up. Spots go to the first 500 people, and we\u2019ll email you before Vasora AI opens to everyone else. You\u2019re also entered to win a free year of Pro.','Vasora AI early access','Please add me to Vasora AI early access.\n\nMy email: '+e)){reportSignup(e);$('em').value=''}};
+  if(await send({_subject:'New early access signup',email:e,signup:'Early access'},$('jb'),m,'You\u2019re signed up. Spots go to the first 500 people, and we\u2019ll email you before Vasora AI opens to everyone else. You\u2019re also entered to win a free year of Pro.','Vasora AI early access','Please add me to Vasora AI early access.\n\nMy email: '+e)){if(!send.held)reportSignup(e);$('em').value=''}};
 $('cb').onclick=async()=>{
   const n=$('cn').value.trim(),e=$('ce').value.trim(),t=$('ct').value,msg=$('cm').value.trim(),m=$('cmsg');
   if(!n||!ok.test(e)){m.className='err';m.textContent='Add your name and a valid email.';return}
@@ -1442,7 +1453,7 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
           var n=d.count;
           countEl.textContent='live: '+n+(n===1?' viewer':' viewers');
           if(typeof d.today==='number'){statsEl.textContent=fmtN(d.today)+' today \u00b7 '+fmtN(d.week||0)+' this week \u00b7 '+fmtN(d.total||0)+' all time';statsEl.style.display=''}
-          if(typeof d.waitlist==='number'){waitEl.textContent=fmtN(d.waitlist)+' of 500 early access spots';waitEl.style.display=''}
+          if(typeof d.waitlist==='number'){waitEl.textContent=fmtN(d.waitlist)+' of 500 early access spots'+(d.pending?' \u00b7 '+fmtN(d.pending)+' waiting to be emailed':'');waitEl.style.display=''}
         })
         .catch(function(err){
           misses++;
