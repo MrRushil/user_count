@@ -337,6 +337,12 @@ input:focus,select:focus,textarea:focus{border-color:rgba(111,227,195,.6);box-sh
   #preview .panel,#join .panel,#contact .panel{grid-row:1 / span 3;max-width:none}
   #faq details{grid-row:auto}
   #faq .wrap>h2{grid-row:1 / span 6}
+  /* early access: label, heading, text and bonus each get their own row on the left */
+  #join .wrap>.heyebrow{grid-row:1}
+  section#join .wrap>h2{grid-row:2;position:static}
+  #join .wrap>p:not(.heyebrow):not(.gift){grid-row:3}
+  #join .wrap>.gift{grid-row:4;margin-top:8px}
+  #join .panel{grid-row:1 / span 4}
   #preview .wrap>h2,#join .wrap>h2,#contact .wrap>h2,#faq .wrap>h2{position:sticky;top:120px}
 }
 details{background:transparent;border-radius:0;border-bottom:1px solid rgba(255,255,255,.1);padding:22px 4px;margin:0}
