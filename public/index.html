@@ -1453,7 +1453,7 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
           var n=d.count;
           countEl.textContent='live: '+n+(n===1?' viewer':' viewers');
           if(typeof d.today==='number'){statsEl.textContent=fmtN(d.today)+' today \u00b7 '+fmtN(d.week||0)+' this week \u00b7 '+fmtN(d.total||0)+' all time';statsEl.style.display=''}
-          if(typeof d.waitlist==='number'){waitEl.textContent=fmtN(d.waitlist)+' of 500 early access spots'+(d.pending?' \u00b7 '+fmtN(d.pending)+' waiting to be emailed':'');waitEl.style.display=''}
+          if(typeof d.waitlist==='number'){waitEl.textContent=fmtN(d.waitlist)+' of 500 early access spots';waitEl.style.display=''}
         })
         .catch(function(err){
           misses++;
