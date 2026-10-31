@@ -1,1 +1,2 @@
-# No dependencies: server.py uses only the Python standard library.
+# The site and counter use only the standard library; this is for the AI preview (POST /analyze).
+anthropic

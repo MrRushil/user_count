@@ -1,7 +1,7 @@
 """
 Vasora AI - marketing site + public live-viewer counter, in one process.
 
-Pure standard library, no dependencies.
+Standard library only, except the anthropic package for POST /analyze.
 
   GET  /, /frames/...    Static files from ./public (the landing page and its
                           hero animation frames).
@@ -33,6 +33,16 @@ Pure standard library, no dependencies.
                           delivery every RETRY_EVERY seconds, deleting it once
                           FormSubmit accepts it. /count reports how many wait.
 
+  POST /analyze          body: {"image": "<base64>", "media_type": "image/jpeg",
+                          "profile": {...}, "vid": "...", "token": "..."}. Sends
+                          the fridge photo and the visitor's answers to Claude
+                          Haiku and returns {"readout": {...}}. One free readout
+                          per visitor (by IP and by browser id); anyone with a
+                          viewer token (LIVE_TOKEN or VIEWER_TOKENS) is
+                          unlimited. Needs ANTHROPIC_API_KEY and the anthropic
+                          package; without them it answers 503 and the page
+                          falls back to its built-in sample readout.
+
   GET  /health           {"ok": true}
 
 Live sessions are kept in memory only: if the process restarts, the live count
@@ -58,6 +68,11 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 PORT = int(os.environ.get("PORT", "8000"))
 LIVE_TOKEN = os.environ.get("LIVE_TOKEN", "").strip()
+# Extra viewer links (co-founders): comma-separated tokens; remove one to revoke it.
+VIEWER_TOKENS = [t.strip() for t in os.environ.get("VIEWER_TOKENS", "").split(",") if t.strip()]
+PREVIEW_MODEL = os.environ.get("PREVIEW_MODEL", "claude-haiku-5-5")
+PREVIEW_DAILY_CAP = int(os.environ.get("PREVIEW_DAILY_CAP", "300"))  # free readouts per day, all visitors
+MAX_IMAGE_BODY = 1_500_000  # the page shrinks photos to ~1024px JPEG, well under this
 STALE_AFTER = 25  # seconds; heartbeats fire every ~10s client-side
 SID_RE = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 MAX_BODY = 1024  # a heartbeat body is ~50 bytes
@@ -344,6 +359,186 @@ def _retry_loop():
                 break  # it's down: try the rest next round
 
 
+# ---- AI preview (POST /analyze) ----
+
+PREVIEW_USED_KEY = "preview:used"
+_preview_used_mem = set()
+_preview_day_mem = {}
+IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+CONDITIONS = {"Type 1 diabetes", "Type 2 diabetes", "Hypertension", "High body fat"}
+GOALS = {"Lose weight", "Lose body fat", "Maintain weight", "No weight goal", ""}
+
+try:
+    import anthropic
+    _claude = anthropic.Anthropic(timeout=45.0, max_retries=1) if os.environ.get("ANTHROPIC_API_KEY") else None
+except ImportError:
+    anthropic = None
+    _claude = None
+
+PREVIEW_SYSTEM = """You are the fridge-photo preview for Vasora AI, a nutrition app for people with \
+type 1 or type 2 diabetes, high blood pressure, or weight and body fat goals.
+
+You get one photo of someone's fridge (or pantry or groceries) and their answers to a short survey. \
+Look at what is actually in the photo, then give short, practical food guidance for their conditions \
+and goal, built from what they already have.
+
+Rules:
+- Only name foods you can actually see. If the photo isn't food storage or is too unclear to read, \
+say so in the summary and keep the lists general.
+- This is nutrition guidance, not medical advice. Never give insulin, medication or dosing advice, and \
+never diagnose. For type 1 diabetes, mention carbs where useful but leave insulin to their care team.
+- Respect every allergy, avoided food and preference in their notes. Never suggest something they said \
+to avoid.
+- If their BMI is under 18.5, or their notes mention an eating disorder, give no weight-loss advice and \
+gently suggest talking to their doctor.
+- Recipes should use mostly what is in the photo and fit the cuisines they like.
+- Keep every item short: a few words for the name, one plain sentence for the reason. Write for a \
+general reader, no jargon."""
+
+_ITEM = {
+    "type": "object",
+    "properties": {"name": {"type": "string"}, "why": {"type": "string"}},
+    "required": ["name", "why"],
+    "additionalProperties": False,
+}
+READOUT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "seen": {"type": "array", "items": {"type": "string"}},
+        "summary": {"type": "string"},
+        "cut": {"type": "array", "items": _ITEM},
+        "add": {"type": "array", "items": _ITEM},
+        "recipes": {"type": "array", "items": _ITEM},
+    },
+    "required": ["seen", "summary", "cut", "add", "recipes"],
+    "additionalProperties": False,
+}
+
+
+def _client_ip(handler):
+    fwd = handler.headers.get("X-Forwarded-For", "")
+    return (fwd.split(",")[0].strip() if fwd else "") or handler.client_address[0]
+
+
+def _preview_keys(ip, vid):
+    key = (LIVE_TOKEN or "vasora-preview").encode()
+    keys = ["ip:" + hmac.new(key, ip.encode(), hashlib.sha256).hexdigest()[:32]]
+    if vid:
+        keys.append("vid:" + hmac.new(key, vid.encode(), hashlib.sha256).hexdigest()[:32])
+    return keys
+
+
+def _claim_preview(keys):
+    """Mark these keys as having used their free readout. False if any already had."""
+    claimed = []
+    for k in keys:
+        if _kv:
+            try:
+                fresh = int(_kv.call("SADD", PREVIEW_USED_KEY, k) or 0) == 1
+            except Exception as e:
+                print(f"KV write failed, using memory: {e}", flush=True)
+                fresh = None
+        else:
+            fresh = None
+        if fresh is None:
+            with _lock:
+                fresh = k not in _preview_used_mem
+                if fresh and len(_preview_used_mem) < MAX_MEM:
+                    _preview_used_mem.add(k)
+        if not fresh:
+            _release_preview(claimed)
+            return False
+        claimed.append(k)
+    return True
+
+
+def _release_preview(keys):
+    """Give the free readout back (the analysis failed)."""
+    for k in keys:
+        if _kv:
+            try:
+                _kv.call("SREM", PREVIEW_USED_KEY, k)
+                continue
+            except Exception:
+                pass
+        with _lock:
+            _preview_used_mem.discard(k)
+
+
+def _under_daily_cap():
+    day = "preview:count:" + _today()
+    if _kv:
+        try:
+            n = int(_kv.call("INCR", day) or 0)
+            if n == 1:
+                _kv.call("EXPIRE", day, 3 * 24 * 3600)
+            return n <= PREVIEW_DAILY_CAP
+        except Exception as e:
+            print(f"KV write failed, using memory: {e}", flush=True)
+    with _lock:
+        _preview_day_mem[day] = _preview_day_mem.get(day, 0) + 1
+        return _preview_day_mem[day] <= PREVIEW_DAILY_CAP
+
+
+def _clean_profile(p):
+    p = p if isinstance(p, dict) else {}
+    text = lambda v, n: v.strip()[:n] if isinstance(v, str) else ""
+    conds = [c for c in (p.get("conditions") or []) if c in CONDITIONS] if isinstance(p.get("conditions"), list) else []
+    goal = p.get("goal") if p.get("goal") in GOALS else ""
+    bmi = p.get("bmi")
+    bmi = round(float(bmi), 1) if isinstance(bmi, (int, float)) and 8 <= bmi <= 120 else None
+    return {
+        "conditions": conds,
+        "goal": goal,
+        "bmi": bmi,
+        "race_or_ethnicity": text(p.get("race"), 60),
+        "foods_they_like": text(p.get("food"), 200),
+        "notes": text(p.get("needs"), 600),
+    }
+
+
+def _analyze(image_b64, media_type, profile):
+    """Ask Claude for a readout. Returns (status, payload)."""
+    answers = json.dumps(profile, indent=1)
+    try:
+        response = _claude.messages.create(
+            model=PREVIEW_MODEL,
+            max_tokens=4000,
+            system=PREVIEW_SYSTEM,
+            output_config={"effort": "low", "format": {"type": "json_schema", "schema": READOUT_SCHEMA}},
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_b64}},
+                    {"type": "text", "text": "My survey answers:\n" + answers +
+                     "\n\nGive me up to 4 items to cut down on, up to 4 to add more of, and 2 to 3 recipes."},
+                ],
+            }],
+        )
+    except anthropic.BadRequestError as e:
+        print(f"Claude rejected the request: {e.message}", flush=True)
+        return 400, {"error": "bad_image"}
+    except anthropic.RateLimitError:
+        return 503, {"error": "busy"}
+    except anthropic.APIStatusError as e:
+        print(f"Claude API error {e.status_code}: {e.message}", flush=True)
+        return 502, {"error": "ai_error"}
+    except anthropic.APIConnectionError as e:
+        print(f"Claude unreachable: {e}", flush=True)
+        return 502, {"error": "ai_error"}
+    if response.stop_reason == "refusal":
+        return 422, {"error": "declined"}
+    text = next((b.text for b in response.content if b.type == "text"), "")
+    try:
+        readout = json.loads(text)
+    except ValueError:
+        return 502, {"error": "ai_error"}
+    for k in ("cut", "add", "recipes"):
+        readout[k] = readout.get(k, [])[:5]
+    readout["seen"] = readout.get("seen", [])[:20]
+    return 200, {"readout": readout, "model": PREVIEW_MODEL}
+
+
 def _backfill():
     """Fold the saved daily sets (kept 8 days) into this week's set and the
     all-time count, once, so the new totals don't start from zero."""
@@ -369,9 +564,13 @@ def _backfill():
 
 
 def _token_ok(token):
-    return bool(LIVE_TOKEN) and hmac.compare_digest(
-        token.encode("utf-8"), LIVE_TOKEN.encode("utf-8")
-    )
+    if not isinstance(token, str) or not token:
+        return False
+    ok = False
+    for t in [LIVE_TOKEN] + VIEWER_TOKENS:  # check all, so timing doesn't reveal which matched
+        if t and hmac.compare_digest(token.encode("utf-8"), t.encode("utf-8")):
+            ok = True
+    return ok
 
 
 def _static_path(route):
@@ -465,14 +664,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         route = self._route()
-        if route not in ("/heartbeat", "/waitlist", "/queue"):
+        if route not in ("/heartbeat", "/waitlist", "/queue", "/analyze"):
             self._send_json(404, {"error": "not_found"})
             return
         try:
             length = int(self.headers.get("Content-Length") or "0")
         except ValueError:
             length = -1
-        limit = MAX_FORM_BODY if route == "/queue" else MAX_BODY
+        limit = {"/queue": MAX_FORM_BODY, "/analyze": MAX_IMAGE_BODY}.get(route, MAX_BODY)
         if length < 0 or length > limit:
             self.close_connection = True
             self._send_json(413 if length > limit else 400, {"error": "bad_length"})
@@ -484,6 +683,9 @@ class Handler(BaseHTTPRequestHandler):
             data = {}
         if not isinstance(data, dict):
             data = {}
+        if route == "/analyze":
+            self._handle_analyze(data)
+            return
         if route == "/queue":
             fields = data.get("fields")
             if (not isinstance(fields, dict) or not fields or set(fields) - FORM_FIELDS
@@ -527,6 +729,32 @@ class Handler(BaseHTTPRequestHandler):
         _record_visit(vid if isinstance(vid, str) and SID_RE.match(vid) else sid)
         self._send_json(200, {"ok": True})
 
+    def _handle_analyze(self, data):
+        if not _claude:
+            self._send_json(503, {"error": "not_configured"})
+            return
+        image, media_type = data.get("image"), data.get("media_type")
+        if not isinstance(image, str) or len(image) < 100 or media_type not in IMAGE_TYPES:
+            self._send_json(400, {"error": "bad_image"})
+            return
+        unlimited = _token_ok(data.get("token"))
+        keys = []
+        if not unlimited:
+            vid = data.get("vid")
+            keys = _preview_keys(_client_ip(self), vid if isinstance(vid, str) and SID_RE.match(vid) else "")
+            if not _claim_preview(keys):
+                self._send_json(429, {"error": "used"})
+                return
+            if not _under_daily_cap():
+                _release_preview(keys)
+                self._send_json(503, {"error": "busy"})
+                return
+        status, payload = _analyze(image, media_type, _clean_profile(data.get("profile")))
+        if status != 200:
+            _release_preview(keys)
+        payload["unlimited"] = unlimited
+        self._send_json(status, payload)
+
 
 def main():
     if not LIVE_TOKEN:
@@ -534,6 +762,7 @@ def main():
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"Vasora site + live counter listening on 0.0.0.0:{PORT}", flush=True)
     print("Visitor totals stored in " + ("Key Value store" if _kv else "memory (set KV_URL to persist)"), flush=True)
+    print("AI preview " + ("on (" + PREVIEW_MODEL + ")" if _claude else "off (set ANTHROPIC_API_KEY and pip install -r requirements.txt)"), flush=True)
     threading.Thread(target=_backfill, daemon=True).start()
     threading.Thread(target=_retry_loop, daemon=True).start()
     server.serve_forever()

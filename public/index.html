@@ -510,7 +510,7 @@ h1,h2,h3,.hhead{text-shadow:0 2px 14px rgba(4,4,8,.6)}
 <div class="titem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg><span>Nutrition data from <b>USDA FoodData Central</b></span></div>
 <div class="titem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M8.5 11h2l1-2 1.5 4 1-2h1.5"/></svg><span>Targets based on <b>DASH &amp; AHA</b> guidance</span></div>
 <div class="titem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".8" fill="currentColor"/></svg><span>Built for <b>type 1, type 2 &amp; hypertension</b></span></div>
-<div class="titem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Photos stay <b>on your device</b> in the preview</span></div>
+<div class="titem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>Preview photos are <b>never saved</b></span></div>
 </div></div>
 
 <section id="why"><div class="wrap">
@@ -612,7 +612,7 @@ h1,h2,h3,.hhead{text-shadow:0 2px 14px rgba(4,4,8,.6)}
 
 <section id="preview"><div class="wrap">
 <h2>Try the <em>preview</em></h2>
-<p class="note">The analysis below is a sample, not real advice. The AI isn't connected yet. Your photo stays on your device.</p>
+<p class="note">Get one free AI readout of your own fridge, powered by Claude. It's an early preview, not medical advice. Your photo is sent securely for analysis and is not saved.</p>
 <div class="panel">
 <div class="bar" aria-hidden="true"><i id="prog" style="width:33%"></i></div>
 
@@ -656,18 +656,19 @@ h1,h2,h3,.hhead{text-shadow:0 2px 14px rgba(4,4,8,.6)}
 <h3>Your fridge</h3>
 <label class="drop" for="photo" id="drop"><span id="dtxt">Tap to take or choose a photo</span></label>
 <input id="photo" type="file" accept="image/*" capture="environment" class="hide">
-<div class="row" style="margin-top:18px"><button class="btn alt" id="b2" type="button">Back</button><button class="btn" id="n2" type="button">See sample readout</button></div>
+<div class="row" style="margin-top:18px"><button class="btn alt" id="b2" type="button">Back</button><button class="btn" id="n2" type="button">Analyze my fridge</button></div>
 <p class="err hide" id="e2"></p>
 </div>
 
 <div id="s3" class="hide">
-<span class="tag">Sample readout</span>
+<span class="tag" id="rtag">Sample readout</span>
 <h3 style="margin-top:10px">Today's fridge</h3>
+<p class="note" id="seen" style="display:none"></p>
 <p class="note" id="sum"></p>
 <h3>Cut down on</h3><ul class="res cut" id="cut"></ul>
 <h3>Add more of</h3><ul class="res add" id="add"></ul>
 <h3>Recipes for you</h3><ul class="res rec" id="rec"></ul>
-<p class="note">Sample results for demonstration. Real, personalized guidance is coming when the Vasora AI engine launches, with our most powerful AI in the Max plan.</p>
+<p class="note" id="rnote">Sample results for demonstration. Real, personalized guidance is coming when the Vasora AI engine launches, with our most powerful AI in the Max plan.</p>
 <div class="row"><button class="btn alt" id="again" type="button">Start over</button><a class="btn" href="#join">Get early access</a></div>
 </div>
 </div>
@@ -737,7 +738,7 @@ h1,h2,h3,.hhead{text-shadow:0 2px 14px rgba(4,4,8,.6)}
 <section id="faq"><div class="wrap">
 <h2>Common <em>questions</em></h2>
 <details><summary>Does Vasora AI give medical advice?</summary><p>No. Vasora AI gives nutrition guidance built around your conditions, using published dietary guidelines. It doesn't diagnose or treat anything, it never gives insulin or medication advice, and it doesn't replace your care team. This preview shows sample results only.</p></details>
-<details><summary>What happens to my photo?</summary><p>In this preview it never leaves your phone. We'll explain how photos are handled before the real AI launches.</p></details>
+<details><summary>What happens to my photo?</summary><p>In the preview, your photo is shrunk on your phone, sent securely to our server and to Anthropic's Claude to read what's in your fridge, and then thrown away. We don't save it. We'll explain how photos are handled in the full app before it launches.</p></details>
 <details><summary>What are the recipes?</summary><p>After you take the survey and snap your fridge, Vasora AI builds recipes from what you already have, made for your conditions and the foods you like. That is why the survey asks about both.</p></details>
 <details><summary>Can Vasora AI help with weight or fat loss?</summary><p>Yes. You can set a goal to lose weight or lose body fat, and the guidance factors in your conditions. It's for adults, and anyone with an eating disorder history should talk to their doctor first.</p></details>
 <details><summary>Why ask for height, weight and race?</summary><p>These help tailor guidance to your body and risk factors. Race is optional.</p></details>
@@ -763,7 +764,7 @@ h1,h2,h3,.hhead{text-shadow:0 2px 14px rgba(4,4,8,.6)}
 <script>
 const $=id=>document.getElementById(id);
 const step=n=>{[1,2,3].forEach(i=>$('s'+i).classList.toggle('hide',i!==n));$('prog').style.width=(n*33.4)+'%';goTo('#preview');const h=document.querySelector('#s'+n+' h3');if(h&&!matchMedia('(prefers-reduced-motion:reduce)').matches){h.classList.remove('mi');void h.offsetWidth;h.classList.add('mi')}};
-let photoURL=null;
+let photoURL=null,photoFile=null;
 $('n1').onclick=()=>{
   const mt=document.querySelector('input[name=u]:checked').value==='m',w=+$('wt').value*(mt?2.2046:1),h=+$('ht').value/(mt?2.54:1),e=$('e1');
   if(!w||!h){e.textContent='Enter your weight and height to continue.';e.classList.remove('hide');return}
@@ -773,7 +774,7 @@ $('b2').onclick=()=>step(1);
 $('photo').onchange=ev=>{
   const f=ev.target.files[0];if(!f)return;
   if(photoURL)URL.revokeObjectURL(photoURL);
-  photoURL=URL.createObjectURL(f);
+  photoURL=URL.createObjectURL(f);photoFile=f;
   $('drop').innerHTML='<img alt="Your fridge photo preview" src="'+photoURL+'">';
   $('e2').classList.add('hide')};
 const CUIS=[
@@ -800,8 +801,8 @@ const AVOID=[
  {m:['mushroom'],label:'Mushrooms'},
  {m:['alcohol'],label:'Alcohol'}
 ];
-$('n2').onclick=()=>{
-  if(!photoURL){$('e2').textContent='Add a fridge photo to continue.';$('e2').classList.remove('hide');return}
+const SAMPLE_NOTE=$('rnote').textContent;
+function showSample(why){
   const c=[...document.querySelectorAll('input[name=c]:checked')].map(x=>x.value);
   const cut=[],add=[];
   const d=c.some(x=>/diabetes/.test(x)),hy=c.includes('Hypertension');
@@ -833,9 +834,52 @@ $('n2').onclick=()=>{
   $('rec').innerHTML=li(rec);
   const parts=c.map(x=>x.toLowerCase());if(g&&g!=='No weight goal')parts.push('your goal to '+g.toLowerCase());
   $('sum').textContent='Based on '+(parts.length?parts.join(' and '):'your answers')+'.'+($('food').value.trim()?' Food tastes noted: '+$('food').value.trim().slice(0,120)+'.':'')+(hitAvoid.length?' Noted to avoid: '+hitAvoid.map(a=>a.label).join(', ')+'.':'')+(lowBmi?' Your BMI is below the healthy range, so weight loss tips are skipped. Please talk to your doctor.':'')+' Your photo has not been analyzed.';
-  step(3)};
+  $('rtag').textContent='Sample readout';$('seen').style.display='none';
+  $('rnote').textContent=(why?why+' ':'')+SAMPLE_NOTE;
+  step(3)}
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+function shrinkPhoto(file){
+  // ~1024px JPEG keeps the upload small and fast on phone data
+  return new Promise((ok,bad)=>{
+    const img=new Image(),u=URL.createObjectURL(file);
+    img.onload=()=>{
+      const k=Math.min(1,1024/Math.max(img.naturalWidth,img.naturalHeight)),cv=document.createElement('canvas');
+      cv.width=Math.max(1,Math.round(img.naturalWidth*k));cv.height=Math.max(1,Math.round(img.naturalHeight*k));
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);URL.revokeObjectURL(u);
+      ok(cv.toDataURL('image/jpeg',.82).split(',')[1])};
+    img.onerror=()=>{URL.revokeObjectURL(u);bad(new Error('read'))};
+    img.src=u})}
+function previewVid(){try{let v=localStorage.getItem('vasora_pvid');if(!v){v=Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('vasora_pvid',v)}return v}catch(e){return''}}
+function viewerToken(){try{return new URLSearchParams(location.search).get('live')||''}catch(e){return''}}
+function showAI(r){
+  const li=a=>(a||[]).map(x=>'<li><b>'+esc(x.name)+'</b><small>'+esc(x.why)+'</small></li>').join('');
+  $('cut').innerHTML=li(r.cut);$('add').innerHTML=li(r.add);$('rec').innerHTML=li(r.recipes);
+  $('sum').textContent=r.summary||'';
+  if(r.seen&&r.seen.length){$('seen').textContent='Spotted: '+r.seen.join(', ')+'.';$('seen').style.display=''}else $('seen').style.display='none';
+  $('rtag').textContent='AI readout · Claude Haiku';
+  $('rnote').textContent='Early AI preview, not medical advice. Check with your care team before big changes to your diet. The full Vasora AI, with our most powerful AI in the Max plan, is coming at launch.';
+  step(3)}
+$('n2').onclick=async()=>{
+  if(!photoURL){$('e2').textContent='Add a fridge photo to continue.';$('e2').classList.remove('hide');return}
+  const btn=$('n2');if(btn.disabled)return;
+  const c=[...document.querySelectorAll('input[name=c]:checked')].map(x=>x.value);
+  const profile={conditions:c,goal:(document.querySelector('input[name=g]:checked')||{}).value||'',bmi:getBmi()||null,race:$('race').value,food:$('food').value,needs:$('needs').value};
+  btn.disabled=true;const label=btn.textContent;btn.textContent='Looking at your fridge…';
+  try{
+    const image=await shrinkPhoto(photoFile);
+    const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),70000);
+    const r=await fetch(COUNTER+'/analyze',{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({image:image,media_type:'image/jpeg',profile:profile,vid:previewVid(),token:viewerToken()}),signal:ctl.signal});
+    clearTimeout(tm);
+    const d=await r.json().catch(()=>({}));
+    if(r.ok&&d.readout){showAI(d.readout);return}
+    if(d.error==='used'){showSample('You’ve already used your free AI readout, so this one is a sample. Get early access to use the real thing first.');return}
+    if(d.error==='bad_image'){$('e2').textContent='We couldn’t read that photo. Try another one.';$('e2').classList.remove('hide');return}
+    if(d.error==='declined'){showSample('The AI couldn’t give a readout for that photo, so this one is a sample.');return}
+    showSample('The AI is busy right now, so this one is a sample. Try again in a bit.')
+  }catch(e){showSample('We couldn’t reach the AI just now, so this one is a sample.')}
+  finally{btn.disabled=false;btn.textContent=label}};
 $('again').onclick=()=>{
-  if(photoURL){URL.revokeObjectURL(photoURL);photoURL=null}
+  if(photoURL){URL.revokeObjectURL(photoURL);photoURL=null;photoFile=null}
   $('drop').innerHTML='<span>Tap to take or choose a photo</span>';$('photo').value='';step(1)};
 
 const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -1370,7 +1414,8 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
 
   // Only a SHA-256 hash of the owner token lives in the page source, so
   // view-source never reveals it. The real token arrives in the owner's URL.
-  var TOKEN_SHA256='be1d27ffb8dc2887e5e7c56da04c2585ae092d8aba8b989f3a58688f9d518e2a';
+  // owner link, then the shared team link (co-founders); the server holds the real tokens
+  var TOKEN_SHA256S=['be1d27ffb8dc2887e5e7c56da04c2585ae092d8aba8b989f3a58688f9d518e2a','80ebd4b5f5a6e08a5e6c441978c7392ad83a89ff599dc2933a869ae7e2997e15'];
   var TIMEOUT_MS=8000; // a cold-starting free host can hang for 30-60s
 
   function req(url,opts){
@@ -1414,7 +1459,7 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
   setInterval(beat,10000);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)beat();});
 
-  // Owner-only: badge only ever renders if this exact page load carries the
+  // Owner/team-only: badge only ever renders if this exact page load carries the
   // right token in the URL (?live=<token>). Nobody else gets the query, the
   // poll, or the DOM node at all.
   var token;
@@ -1422,7 +1467,7 @@ if(!reduce&&window.gsap&&window.ScrollTrigger){
   if(!token||!(window.crypto&&crypto.subtle&&window.TextEncoder))return;
   crypto.subtle.digest('SHA-256',new TextEncoder().encode(token)).then(function(buf){
     var hex=Array.prototype.map.call(new Uint8Array(buf),function(b){return ('0'+b.toString(16)).slice(-2);}).join('');
-    if(hex===TOKEN_SHA256)showBadge(token);
+    if(TOKEN_SHA256S.indexOf(hex)!==-1)showBadge(token);
   }).catch(function(){});
 
   function showBadge(token){
