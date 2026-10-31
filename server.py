@@ -368,12 +368,19 @@ IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
 CONDITIONS = {"Type 1 diabetes", "Type 2 diabetes", "Hypertension", "High body fat"}
 GOALS = {"Lose weight", "Lose body fat", "Maintain weight", "No weight goal", ""}
 
+# Accept the key under a couple of likely names, so a near-miss in the dashboard still works.
+_KEY_NAMES = ("ANTHROPIC_API_KEY", "CLAUDE_API_KEY", "ANTHROPIC_KEY", "CLAUDE_KEY")
+_API_KEY = next((os.environ[k].strip() for k in _KEY_NAMES if os.environ.get(k, "").strip()), "")
+_PREVIEW_OFF_WHY = ""
 try:
     import anthropic
-    _claude = anthropic.Anthropic(timeout=45.0, max_retries=1) if os.environ.get("ANTHROPIC_API_KEY") else None
-except ImportError:
+    _claude = anthropic.Anthropic(api_key=_API_KEY, timeout=45.0, max_retries=1) if _API_KEY else None
+    if not _API_KEY:
+        _PREVIEW_OFF_WHY = "no API key in the environment (expected ANTHROPIC_API_KEY)"
+except ImportError as e:
     anthropic = None
     _claude = None
+    _PREVIEW_OFF_WHY = f"anthropic package not installed ({e})"
 
 PREVIEW_SYSTEM = """You are the fridge-photo preview for Vasora AI, a nutrition app for people with \
 type 1 or type 2 diabetes, high blood pressure, or weight and body fat goals.
@@ -762,7 +769,7 @@ def main():
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     print(f"Vasora site + live counter listening on 0.0.0.0:{PORT}", flush=True)
     print("Visitor totals stored in " + ("Key Value store" if _kv else "memory (set KV_URL to persist)"), flush=True)
-    print("AI preview " + ("on (" + PREVIEW_MODEL + ")" if _claude else "off (set ANTHROPIC_API_KEY and pip install -r requirements.txt)"), flush=True)
+    print("AI preview " + ("on (" + PREVIEW_MODEL + ")" if _claude else "off: " + _PREVIEW_OFF_WHY), flush=True)
     threading.Thread(target=_backfill, daemon=True).start()
     threading.Thread(target=_retry_loop, daemon=True).start()
     server.serve_forever()
