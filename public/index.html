@@ -1011,7 +1011,7 @@ void main(){
   const loc=gl.getAttribLocation(pg,'p');gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
   const U=n=>gl.getUniformLocation(pg,n);
   const ur=U('r'),ut=U('t'),utl=U('tl');
-  function fit(){const s=.5;cv.width=Math.max(2,innerWidth*s|0);cv.height=Math.max(2,innerHeight*s|0);gl.viewport(0,0,cv.width,cv.height)}
+  function fit(){const s=matchMedia('(max-width:820px),(pointer:coarse)').matches?.28:.5;cv.width=Math.max(2,innerWidth*s|0);cv.height=Math.max(2,innerHeight*s|0);gl.viewport(0,0,cv.width,cv.height)}
   function draw(now){const tl=window._tl||[0,0];gl.uniform2f(ur,cv.width,cv.height);gl.uniform1f(ut,now/1000);gl.uniform2f(utl,tl[0],tl[1]);gl.drawArrays(gl.TRIANGLES,0,3)}
   fit();addEventListener('resize',()=>{fit();draw(performance.now())});
   if(matchMedia('(prefers-reduced-motion:reduce)').matches){draw(8000);return}
@@ -1249,16 +1249,49 @@ if(heroCanvas){
     /* frames are packed 8 per sprite sheet (2 columns x 4 rows of 1280x720), so a visit
        makes 42 image requests instead of 336 - static hosts rate-limit big bursts */
     const PER=8,COLS=2,FW=1280,FH=720,SHEETS=Math.ceil(HERO_N/PER),sheets=new Array(SHEETS);
+    /* phones: a fully decoded sheet is 2560x2880 (~30 MB), and all 42 would be ~1.2 GB, so the
+       browser kept throwing them away and re-decoding mid-scroll (the stutter). Instead decode
+       each sheet off the main thread into an ImageBitmap (smaller on phones) and keep only the
+       ones near the current frame. */
+    const SMALL=matchMedia('(max-width:820px),(pointer:coarse)').matches,SC=SMALL?.6:1,KEEP=SMALL?3:6;
+    const bmps=new Array(SHEETS),pend=new Array(SHEETS).fill(false);
     const blurCv=document.createElement('canvas');blurCv.width=32;blurCv.height=18;
-    const blurCtx=blurCv.getContext('2d');
-    let want=0,last=-1;
+    const blurCtx=blurCv.getContext('2d');blurCtx.imageSmoothingQuality='low';
+    let want=0,last=-1,cw=0,ch=0,fx=null;
+    const setLoaded=(s,on)=>{for(let k=0;k<PER&&s*PER+k<HERO_N;k++)loaded[s*PER+k]=on};
+    function makeBitmap(img){
+      if(!window.createImageBitmap)return Promise.resolve(img);
+      const o=SC<1?{resizeWidth:Math.round(img.naturalWidth*SC),resizeHeight:Math.round(img.naturalHeight*SC),resizeQuality:'medium'}:undefined;
+      return createImageBitmap(img,o).catch(()=>createImageBitmap(img)).catch(()=>img);
+    }
+    function ensure(s){
+      if(s<0||s>=SHEETS||bmps[s]||pend[s]||!sheets[s])return;
+      pend[s]=true;
+      makeBitmap(sheets[s]).then(b=>{
+        pend[s]=false;
+        const cur=Math.floor(want/PER);
+        if(s<cur-KEEP||s>cur+KEEP+1){if(b.close)b.close();return}
+        bmps[s]=b;setLoaded(s,true);heroSetFrame(want)});
+    }
+    function retain(cur){
+      for(let s=0;s<SHEETS;s++){
+        if(s>=cur-KEEP&&s<=cur+KEEP+1)ensure(s);
+        else if(bmps[s]){if(bmps[s].close)bmps[s].close();bmps[s]=null;setLoaded(s,false)}
+      }
+    }
+    function measure(){
+      /* phones: a 1.5x canvas costs ~2x the pixels of 1.1x for no visible gain in a moving shot */
+      const dpr=Math.min(devicePixelRatio||1,SMALL?1.1:1.5),r=heroCanvas.getBoundingClientRect();
+      cw=Math.round(r.width*dpr);ch=Math.round(r.height*dpr);fx=null;
+      if(cw&&ch&&(heroCanvas.width!==cw||heroCanvas.height!==ch)){heroCanvas.width=cw;heroCanvas.height=ch}
+    }
     const path=s=>'frames/hero/sheet-'+String(s).padStart(2,'0')+'.webp';
     function paint(i){
-      const img=sheets[Math.floor(i/PER)],k=i%PER,sx=(k%COLS)*FW,sy=Math.floor(k/COLS)*FH;
-      const dpr=Math.min(devicePixelRatio||1,1.5),r=heroCanvas.getBoundingClientRect();
-      const cw=Math.round(r.width*dpr),ch=Math.round(r.height*dpr);
+      const img=bmps[Math.floor(i/PER)];if(!img)return;
+      const q=(img.width||img.naturalWidth)/(FW*COLS),k=i%PER;
+      const sx=(k%COLS)*FW*q,sy=Math.floor(k/COLS)*FH*q,sw=FW*q,sh=FH*q;
+      if(!cw||!ch)measure();
       if(!cw||!ch)return;
-      if(heroCanvas.width!==cw||heroCanvas.height!==ch){heroCanvas.width=cw;heroCanvas.height=ch}
       const cover=Math.max(cw/FW,ch/FH);
       /* tall (phone) screens: cover-cropping keeps only the middle quarter of the 16:9 shot
          and cuts off the doors and the reminder card, so show at least 62% of the width and
@@ -1266,11 +1299,11 @@ if(heroCanvas){
       const s=Math.min(cover,cw/(FW*.62));
       if(s>=cover){
         const dw=FW*s,dh=FH*s;
-        ctx.clearRect(0,0,cw,ch);ctx.drawImage(img,sx,sy,FW,FH,(cw-dw)/2,(ch-dh)/2,dw,dh);
+        ctx.clearRect(0,0,cw,ch);ctx.drawImage(img,sx,sy,sw,sh,(cw-dw)/2,(ch-dh)/2,dw,dh);
         return;
       }
       /* blur for free: shrink to a tiny canvas, then let smoothing stretch it back up */
-      blurCtx.drawImage(img,sx,sy,FW,FH,0,0,32,18);
+      blurCtx.drawImage(img,sx,sy,sw,sh,0,0,32,18);
       const bw=FW*cover,bh=FH*cover;
       ctx.imageSmoothingQuality='low';
       ctx.drawImage(blurCv,0,0,32,18,(cw-bw)/2,(ch-bh)/2,bw,bh);
@@ -1280,18 +1313,22 @@ if(heroCanvas){
          of the shot, so slide the view from centre to the right edge as they come in */
       const dw=FW*s,dh=FH*s,t=Math.min(1,Math.max(0,(i-196)/28)),pan=t*t*(3-2*t);
       const dx=(cw-dw)/2-pan*(dw-cw)/2,dy=Math.max(0,ch*.38-dh/2);
-      ctx.drawImage(img,sx,sy,FW,FH,dx,dy,dw,dh);
-      /* feather the band's top and bottom edges into the fill */
+      ctx.drawImage(img,sx,sy,sw,sh,dx,dy,dw,dh);
+      /* feather the band's top and bottom edges into the fill (gradients built once per size) */
       const f=Math.round(dh*.14);
-      let g=ctx.createLinearGradient(0,dy,0,dy+f);
-      g.addColorStop(0,'rgba(5,5,7,.85)');g.addColorStop(1,'rgba(5,5,7,0)');
-      ctx.fillStyle=g;ctx.fillRect(0,dy,cw,f);
-      g=ctx.createLinearGradient(0,dy+dh-f,0,dy+dh);
-      g.addColorStop(0,'rgba(5,5,7,0)');g.addColorStop(1,'rgba(5,5,7,.85)');
-      ctx.fillStyle=g;ctx.fillRect(0,dy+dh-f,cw,f);
+      if(!fx){
+        const a=ctx.createLinearGradient(0,dy,0,dy+f),b=ctx.createLinearGradient(0,dy+dh-f,0,dy+dh);
+        a.addColorStop(0,'rgba(5,5,7,.85)');a.addColorStop(1,'rgba(5,5,7,0)');
+        b.addColorStop(0,'rgba(5,5,7,0)');b.addColorStop(1,'rgba(5,5,7,.85)');
+        fx={a,b};
+      }
+      ctx.fillStyle=fx.a;ctx.fillRect(0,dy,cw,f);
+      ctx.fillStyle=fx.b;ctx.fillRect(0,dy+dh-f,cw,f);
     }
     heroSetFrame=i=>{
-      i=Math.max(0,Math.min(HERO_N-1,Math.round(i)));want=i;
+      i=Math.max(0,Math.min(HERO_N-1,Math.round(i)));
+      if(Math.floor(i/PER)!==Math.floor(want/PER))retain(Math.floor(i/PER));
+      want=i;
       if(loaded[i]){if(i!==last){paint(i);last=i}return}
       /* exact frame not downloaded yet: show nearest already-loaded frame instead of
          freezing, so fast scrolling still looks continuous while the rest arrive */
@@ -1301,21 +1338,21 @@ if(heroCanvas){
         if(b<HERO_N&&loaded[b]){if(b!==last){paint(b);last=b}return}
       }
     };
-    const heroResize=()=>{if(last>-1){const l=last;last=-1;heroSetFrame(l)}};
+    const heroResize=()=>{measure();if(last>-1){const l=last;last=-1;heroSetFrame(l)}};
     /* download sheets in order, 3 at a time; retry a failed one with backoff
        (a fresh query string so a cached error response isn't reused) */
     let next=0;
     function loadSheet(s,attempt){
       const im=new Image();
       im.decoding='async';
-      im.onload=()=>{sheets[s]=im;for(let k=0;k<PER&&s*PER+k<HERO_N;k++)loaded[s*PER+k]=true;heroSetFrame(want);pump()};
+      im.onload=()=>{sheets[s]=im;const cur=Math.floor(want/PER);if(s>=cur-KEEP&&s<=cur+KEEP+1)ensure(s);pump()};
       im.onerror=()=>{if(attempt<5)setTimeout(()=>loadSheet(s,attempt+1),1500*(attempt+1));else pump()};
       im.src=path(s)+(attempt?'?r='+attempt:'');
     }
     function pump(){if(next<SHEETS)loadSheet(next++,0)}
     for(let c=0;c<3;c++)pump();
     addEventListener('resize',heroResize,{passive:true});
-    heroSetFrame(0);
+    measure();heroSetFrame(0);
   }
 }
 if(heroCanvas){
